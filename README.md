@@ -1,2 +1,1 @@
-# assets
-
+# Evert export add-on of the Evertims project
