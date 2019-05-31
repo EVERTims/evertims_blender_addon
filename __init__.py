@@ -138,38 +138,66 @@ class ExportEvertims(Operator):
 
             # loop over faces
             (vertices, faces) = utils.getVertFaces(obj)
-            
+            faceCount = 0
             for faceId, face in enumerate(faces):
                 
-                # export face
-                id = str(faceId)
+                # sanity check on num vertice in face
+                if len(face.vertices) not in [3, 4]:
+                    self.report({'ERROR'}, 'only support triangle faces (object: {})'.format(obj.name))
+                    return {'CANCELLED'}
+                
+                # get face id
+                id = str(faceCount)
+                
+                # announce face msg
                 lines.append(header + 'face ' + id)
                 
                 # export face material 
                 mat = obj.data.materials[face.material_index]
                 lines.append(header + 'face/' + id + '/material ' + mat.name)
-                        
-                # sanity check on num vertice in face
-                if len(face.vertices) not in [3]:
-                    self.report({'ERROR'}, 'only support triangle faces (object: {})'.format(obj.name))
-                    return {'CANCELLED'}
-                
+
+                r = 2 # round factor
+
                 # face is triangle
                 if len(face.vertices) == 3:
+                    
+                    # loop over vertices: init
                     faceCoord = ''
+                    
+                    # loop over vertices 
                     for vertId in face.vertices:
-                        faceCoord += '{} {} {} '.format(vertices[vertId].co[0],  vertices[vertId].co[1],  vertices[vertId].co[2])
+                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0],r),  round(vertices[vertId].co[1]),  round(vertices[vertId].co[2]) )
                     lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
                     
-                # elif len(face.vertices) == 4:
-                #     faceCoord = ''
-                #     for vertId in [0, 1, 2]:
-                #         faceCoord += '{} {} {} '.format(vertices[vertId].co[0],  vertices[vertId].co[1],  vertices[vertId].co[2])
-                #     lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
-                #     faceCoord = ''
-                #     for vertId in [2, 3, 0]:
-                #         faceCoord += '{} {} {} '.format(vertices[vertId].co[0],  vertices[vertId].co[1],  vertices[vertId].co[2])
-                #     lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
+                elif len(face.vertices) == 4:
+
+                    # loop over vertices: init
+                    faceCoord = ''   
+
+                    # loop over vertices
+                    for vertIdTmp in [0, 1, 2]:
+                        vertId = face.vertices[vertIdTmp]
+                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0],r),  round(vertices[vertId].co[1]),  round(vertices[vertId].co[2]) )
+                    lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
+
+                    # incr. face count
+                    faceCount += 1
+                    id = str(faceCount)
+
+                    # announce face msg (to factorize)
+                    lines.append(header + 'face ' + id)
+                    
+                    # export face material 
+                    lines.append(header + 'face/' + id + '/material ' + mat.name)
+
+                    faceCoord = ''
+                    for vertIdTmp in [2, 3, 0]:
+                        vertId = face.vertices[vertIdTmp]
+                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0],r),  round(vertices[vertId].co[1]),  round(vertices[vertId].co[2]) )
+                    lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
+
+                # incr. face count
+                faceCount += 1
             
             # end room definition
             lines.append(header + "defineover")        
