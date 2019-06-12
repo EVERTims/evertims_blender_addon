@@ -156,7 +156,7 @@ class ExportEvertims(Operator):
                 mat = obj.data.materials[face.material_index]
                 lines.append(header + 'face/' + id + '/material ' + mat.name)
 
-                r = 2 # round factor
+                r = 2 # round factor, same as CATT
 
                 # face is triangle
                 if len(face.vertices) == 3:
@@ -166,7 +166,7 @@ class ExportEvertims(Operator):
                     
                     # loop over vertices 
                     for vertId in face.vertices:
-                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0],r),  round(vertices[vertId].co[1]),  round(vertices[vertId].co[2]) )
+                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0], r),  round(vertices[vertId].co[1], r),  round(vertices[vertId].co[2], r) )
                     lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
                     
                 elif len(face.vertices) == 4:
@@ -177,7 +177,7 @@ class ExportEvertims(Operator):
                     # loop over vertices
                     for vertIdTmp in [0, 1, 2]:
                         vertId = face.vertices[vertIdTmp]
-                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0],r),  round(vertices[vertId].co[1]),  round(vertices[vertId].co[2]) )
+                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0], r),  round(vertices[vertId].co[1], r),  round(vertices[vertId].co[2], r) )
                     lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
 
                     # incr. face count
@@ -193,7 +193,7 @@ class ExportEvertims(Operator):
                     faceCoord = ''
                     for vertIdTmp in [2, 3, 0]:
                         vertId = face.vertices[vertIdTmp]
-                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0],r),  round(vertices[vertId].co[1]),  round(vertices[vertId].co[2]) )
+                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0], r),  round(vertices[vertId].co[1], r),  round(vertices[vertId].co[2], r) )
                     lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
 
                 # incr. face count
