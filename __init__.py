@@ -76,46 +76,46 @@ class ExportEvertims(Operator):
         if self.use_selection:
             objects = context.selected_objects
         else:
-            objects = scene.objects
+            objects = scene.objects.values()
 
         # get rooms, sources, listeners from objects set
         radicalRoom = "Room"
         radicalSource = "Source"
         radicalListener = "Listener"
-        keysRoom = [key for key, value in objects.items() if value.name.startswith(radicalRoom)]
-        keysSource = [key for key, value in objects.items() if value.name.startswith(radicalSource)]
-        keysListener = [key for key, value in objects.items() if value.name.startswith(radicalListener)]
+        rooms = [x for x in objects if x.name.startswith(radicalRoom)]
+        sources = [x for x in objects if x.name.startswith(radicalSource)]
+        listeners = [x for x in objects if x.name.startswith(radicalListener)]
 
         # sanity check init
         passCheck = True
         error = "undefined error"
 
         # sanity check: at least one room, one source, one listener
-        if( len(keysRoom) == 0 ):
+        if( len(rooms) == 0 ):
             error = "define at least one object which name starts with {}".format(radicalRoom)
             passCheck = False
-        elif( len(keysSource) == 0 ):
+        elif( len(sources) == 0 ):
             error = "define at least one object which name starts with {}".format(radicalSource)
             passCheck = False            
-        elif( len(keysListener) == 0 ):
+        elif( len(listeners) == 0 ):
             error = "define at least one object which name starts with {}".format(radicalListener)
             passCheck = False
 
         # sanity check: naming convention respected
         if( passCheck ):
-            for key in keysRoom + keysSource + keysListener:
-                splitName = objects[key].name.split("_")
+            for obj in rooms + sources + listeners:
+                splitName = obj.name.split("_")
                 if( len(splitName) != 2 or not utils.isInt(splitName[1]) ):
                     passCheck = False
-                    error = "name convention Object_Integer not respected for object: {}".format(objects[key].name)
+                    error = "name convention Object_Integer not respected for object: {}".format(obj.name)
                     break
 
         # sanity check: room has at least one material
         if( passCheck ):
-            for key in keysRoom:
-                if( len(objects[key].data.materials) == 0 ):
+            for obj in rooms:
+                if( len(obj.data.materials) == 0 ):
                     passCheck = False
-                    error = "room {} has no materials assigned".format(objects[key].name)
+                    error = "room {} has no materials assigned".format(obj.name)
 
         # sanity check: report error
         if( not passCheck ):
@@ -126,10 +126,9 @@ class ExportEvertims(Operator):
         lines = []
         
         # get export content: room
-        for key in keysRoom:
+        for obj in rooms:
 
-            id = objects[key].name.split("_")[1]
-            obj = objects[key]
+            id = obj.name.split("_")[1]
 
             # start room definition
             header = "/room/" + id + "/"
@@ -203,18 +202,18 @@ class ExportEvertims(Operator):
             lines.append(header + "defineover")        
         
         # get export content: listener
-        for key in keysListener:
-            id = objects[key].name.split("_")[1]
+        for obj in listeners:
+            id = obj.name.split("_")[1]
             header = "/listener/" + id + "/"
             lines.append(header + "spawn")
-            lines.append(header + "transform/matrix " + utils.mat4x4ToString(objects[key].matrix_world))
+            lines.append(header + "transform/matrix " + utils.mat4x4ToString(obj.matrix_world))
         
         # get export content: listener
-        for key in keysSource:
-            id = objects[key].name.split("_")[1]
+        for obj in sources:
+            id = obj.name.split("_")[1]
             header = "/source/" + id + "/"
             lines.append(header + "spawn")
-            lines.append(header + "transform/matrix " + utils.mat4x4ToString(objects[key].matrix_world))
+            lines.append(header + "transform/matrix " + utils.mat4x4ToString(obj.matrix_world))
 
         # write to disk
         utils.write(self.filepath, lines)
