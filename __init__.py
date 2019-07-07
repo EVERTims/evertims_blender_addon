@@ -137,7 +137,7 @@ class ExportEvertims(Operator):
 
             # loop over faces
             (vertices, faces) = utils.getVertFaces(obj)
-            faceCount = 0
+            faceCount = 1
             for faceId, face in enumerate(faces):
                 
                 # sanity check on num vertice in face
