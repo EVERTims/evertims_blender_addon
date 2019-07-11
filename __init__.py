@@ -125,6 +125,9 @@ class ExportEvertims(Operator):
         # get export content: init
         lines = []
         
+        # get export content: static fields
+        lines.append("/soundvelocity 343.325") # mimic catt acoustic sound velocity
+
         # get export content: room
         for obj in rooms:
 
