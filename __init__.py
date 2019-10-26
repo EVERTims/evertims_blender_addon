@@ -73,13 +73,13 @@ class EvertimsSettings(PropertyGroup):
             name="Engine type",
             description="Current method selected to compute auralization",
             items={
-            ("ISM", "ism", "Image Source Model"),
-            ("RAYTRACING", "raytracing", "Raytracing Model")},
+            ("ISM", "image source (ism)", "Image Source Model")
+            },
             default="ISM")
     sound_velocity = FloatProperty(
             name="Sound velocity",
             description="Travelling speed of sound during simulation",
-            default=343.3,
+            default=343.3, max = 600, min = 1
             )
     air_absorption = BoolProperty(
             name="Enable air absorption",
@@ -89,7 +89,7 @@ class EvertimsSettings(PropertyGroup):
     ism_max_order = IntProperty(
             name="Max ISM order",
             description="Maximum reflection order considered during the image source simulation",
-            default=3,
+            default=3, min = 1, max = 10
             )
     update_thresh_loc = FloatProperty(
             name="Update threshold location (m)",
