@@ -57,7 +57,7 @@ class AbstractOscSender(AbstractBase):
         # create OSC message, set address, fill message
         msg = OSC.OSCMessage()
         msg.setAddress(header)
-        if( content ): msg.append(content)
+        if( content != None ): msg.append(content)
 
         # send OSC message
         try:
