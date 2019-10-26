@@ -1,246 +1,189 @@
 
 bl_info = {
-    "name": "Evertims export",
+    "name": "Evertims real-time auralization",
     "author": "David Poirier-Quinot",
     "version": (0, 0, 1),
     "blender": (2, 79, 0),
-    "location": "File > Import-Export > Evertims",
-    "description": "Export Evertims files",
+    "location": "3D View > Toolbox",
+    "description": "Real-time room acoustics in the Blender editor.",
     "warning": "",
     "wiki_url": "",
     "support": 'COMMUNITY',
-    "category": "Import-Export",
+    "category": "System",
 }
-
-"""
-Export Evertims files (ascii)
-
-- Export doesn't support non triangle faces
-
-"""
 
 if "bpy" in locals():
     import importlib
+    importlib.reload(ui)
+    importlib.reload(operators)
+    importlib.reload(evertims)
+else:
+    import bpy
+    import os
+    from bpy.props import (
+        StringProperty,
+        EnumProperty,
+        BoolProperty,
+        IntProperty,
+        FloatProperty,
+        PointerProperty,
+        CollectionProperty
+        )
+    from bpy.types import (
+        PropertyGroup,
+        AddonPreferences
+        )
+    from . import (
+        ui,
+        operators,
+        evertims # for debug purpose: reloading twice the addon with F8 will now reload the content of the ./evertims module as well
+        )
 
-    if "utils" in locals():
-        importlib.reload(utils)
-    else:
-        from . import utils
+class EvertimsSettings(PropertyGroup):
 
-import os
-import bpy
-from bpy.props import StringProperty, BoolProperty, CollectionProperty
-from bpy.types import Operator
-
-
-class ExportEvertims(Operator):
-
-    """Save triangle mesh data from the rooms in the scene, along with transform matrices of sources and listeners"""
-
-    bl_idname = "export_mesh.evertims"
-    bl_label = "Export Evertims"
-
-    filename_ext = ".txt"
-    filter_glob = StringProperty(default="*.txt", options={'HIDDEN'})
-
-    use_selection = BoolProperty(
-            name="Selection Only",
-            description="Export selected objects only",
+    # Network configuration
+    ip_remote = StringProperty(
+            name="IP remote",
+            description="IP of the computer running the Evertims client",
+            default="127.0.0.1", maxlen=1024,
+            )
+    ip_local = StringProperty(
+            name="IP local",
+            description="IP of the computer running Blender",
+            default="127.0.0.1", maxlen=1024,
+            )
+    port_write = IntProperty(
+            name="Port out",
+            description="Port used by the Evertims client to read data sent by Blender",
+            default=4002,
+            )
+    port_read = IntProperty(
+            name="Port in",
+            description="Port used by Blender to read data sent by the Evertims client",
+            default=4001,
+            )
+    is_client_connected = BoolProperty(
+            name="Is Evertims client connected",
+            description="Set to true if connection to Evertims client can be established",
             default=False,
             )
 
-    use_mesh_modifiers = BoolProperty(
-            name="Apply Modifiers",
-            description="Apply the modifiers before saving",
+    # Engine configuration
+    engine_type = EnumProperty(
+            name="Engine type",
+            description="Current method selected to compute auralization",
+            items={
+            ("ISM", "ism", "Image Source Model"),
+            ("RAYTRACING", "raytracing", "Raytracing Model")},
+            default="ISM")
+    sound_velocity = FloatProperty(
+            name="Sound velocity",
+            description="Travelling speed of sound during simulation",
+            default=343.3,
+            )
+    air_absorption = BoolProperty(
+            name="Enable air absorption",
+            description="Enable the frequency specific air absorption of acoustic energy during the simulation",
             default=True,
             )
-
-    filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for exporting the file",
-            maxlen=1024,
-            subtype='FILE_PATH',
+    ism_max_order = IntProperty(
+            name="Max ISM order",
+            description="Maximum reflection order considered during the image source simulation",
+            default=3,
+            )
+    update_thresh_loc = FloatProperty(
+            name="Update threshold location (m)",
+            description="Minimum amount of translation required to trigger an update of a given source/listener location",
+            default=0.1,
+            )
+    update_thresh_rot = FloatProperty(
+            name="Update threshold rotation (deg)",
+            description="Minimum amount of rotation required to trigger an update of a given source/listener location",
+            default=1,
             )
 
-    def invoke(self, context, event):
-        wm = context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+    # Drawer configuration
+    draw_rays = BoolProperty(
+            name="Draw Rays",
+            description="Draw rays resulting from Evertims simulation in the 3D view",
+            default=True,
+            )
+    draw_order_max = IntProperty(
+            name="Max image source order drawn",
+            description="Maximum order of image source reflections drawn on screen",
+            default=3,
+            )
 
-    def execute(self, context):
+    enable_auralization = BoolProperty(
+            name="Enable auralization",
+            description='Activate real-time update of the Evertims client from Blender 3D view',
+            default=False,
+            )
+    debug_logs = BoolProperty(
+            name="Print Logs",
+            description='Print logs of the EVERTims python module in Blender console',
+            default=False,
+            )
 
-        from . import utils
+    # Scene components
+    # rooms = CollectionProperty(
+    #         name="Rooms",
+    #         description="List of room objects",
+    #         type = ListItem
+    #         )
+    room_object = StringProperty(
+            name="Room",
+            description="Current room selected for auralization",
+            default="", maxlen=1024,
+            ) 
+    listener_object = StringProperty(
+            name="Listener",
+            description="Current listener selected for auralization",
+            default="", maxlen=1024,
+            ) 
+    source_object = StringProperty(
+            name="Source",
+            description="Current source selected for auralization",
+            default="", maxlen=1024,
+            )
+    materials = StringProperty(
+            name="Material",
+            description="A string (shaped from dict) of all available materials and their properties",
+            default="", maxlen=0, # unlimited length
+            ) 
 
-        scene = context.scene
+class EvertimsPreferences(AddonPreferences):
+    bl_idname = __name__
 
-        # use either only selected objects or browse all scene
-        if self.use_selection:
-            objects = context.selected_objects
-        else:
-            objects = scene.objects.values()
-
-        # get rooms, sources, listeners from objects set
-        radicalRoom = "Room"
-        radicalSource = "Source"
-        radicalListener = "Listener"
-        rooms = [x for x in objects if x.name.startswith(radicalRoom)]
-        sources = [x for x in objects if x.name.startswith(radicalSource)]
-        listeners = [x for x in objects if x.name.startswith(radicalListener)]
-
-        # sanity check init
-        passCheck = True
-        error = "undefined error"
-
-        # sanity check: at least one room, one source, one listener
-        if( len(rooms) == 0 ):
-            error = "define at least one object which name starts with {}".format(radicalRoom)
-            passCheck = False
-        elif( len(sources) == 0 ):
-            error = "define at least one object which name starts with {}".format(radicalSource)
-            passCheck = False            
-        elif( len(listeners) == 0 ):
-            error = "define at least one object which name starts with {}".format(radicalListener)
-            passCheck = False
-
-        # sanity check: naming convention respected
-        if( passCheck ):
-            for obj in rooms + sources + listeners:
-                splitName = obj.name.split("_")
-                if( len(splitName) != 2 or not utils.isInt(splitName[1]) ):
-                    passCheck = False
-                    error = "name convention Object_Integer not respected for object: {}".format(obj.name)
-                    break
-
-        # sanity check: room has at least one material
-        if( passCheck ):
-            for obj in rooms:
-                if( len(obj.data.materials) == 0 ):
-                    passCheck = False
-                    error = "room {} has no materials assigned".format(obj.name)
-
-        # sanity check: report error
-        if( not passCheck ):
-            self.report({'ERROR'}, error)
-            return {'CANCELLED'}
-
-        # get export content: init
-        lines = []
-        
-        # get export content: static fields
-        lines.append("/soundvelocity 343.325") # mimic catt acoustic sound velocity
-
-        # get export content: room
-        for obj in rooms:
-
-            id = obj.name.split("_")[1]
-
-            # start room definition
-            header = "/room/" + id + "/"
-            lines.append(header + "spawn")
-            lines.append(header + "definestart")
-
-            # loop over faces
-            (vertices, faces) = utils.getVertFaces(obj)
-            faceCount = 1
-            for faceId, face in enumerate(faces):
-                
-                # sanity check on num vertice in face
-                if len(face.vertices) not in [3, 4]:
-                    self.report({'ERROR'}, 'only support triangle faces (object: {})'.format(obj.name))
-                    return {'CANCELLED'}
-                
-                # get face id
-                id = str(faceCount)
-                
-                # announce face msg
-                lines.append(header + 'face ' + id)
-                
-                # export face material 
-                mat = obj.data.materials[face.material_index]
-                lines.append(header + 'face/' + id + '/material ' + mat.name)
-
-                r = 2 # round factor, same as CATT
-
-                # face is triangle
-                if len(face.vertices) == 3:
-                    
-                    # loop over vertices: init
-                    faceCoord = ''
-                    
-                    # loop over vertices 
-                    for vertId in face.vertices:
-                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0], r),  round(vertices[vertId].co[1], r),  round(vertices[vertId].co[2], r) )
-                    lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
-                    
-                elif len(face.vertices) == 4:
-
-                    # loop over vertices: init
-                    faceCoord = ''   
-
-                    # loop over vertices
-                    for vertIdTmp in [0, 1, 2]:
-                        vertId = face.vertices[vertIdTmp]
-                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0], r),  round(vertices[vertId].co[1], r),  round(vertices[vertId].co[2], r) )
-                    lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
-
-                    # incr. face count
-                    faceCount += 1
-                    id = str(faceCount)
-
-                    # announce face msg (to factorize)
-                    lines.append(header + 'face ' + id)
-                    
-                    # export face material 
-                    lines.append(header + 'face/' + id + '/material ' + mat.name)
-
-                    faceCoord = ''
-                    for vertIdTmp in [2, 3, 0]:
-                        vertId = face.vertices[vertIdTmp]
-                        faceCoord += '{} {} {} '.format( round(vertices[vertId].co[0], r),  round(vertices[vertId].co[1], r),  round(vertices[vertId].co[2], r) )
-                    lines.append( header + 'face/' + id + '/triangles/xyz ' + faceCoord)
-
-                # incr. face count
-                faceCount += 1
-            
-            # end room definition
-            lines.append(header + "defineover")        
-        
-        # get export content: listener
-        for obj in listeners:
-            id = obj.name.split("_")[1]
-            header = "/listener/" + id + "/"
-            lines.append(header + "spawn")
-            lines.append(header + "transform/matrix " + utils.mat4x4ToString(obj.matrix_world))
-        
-        # get export content: listener
-        for obj in sources:
-            id = obj.name.split("_")[1]
-            header = "/source/" + id + "/"
-            lines.append(header + "spawn")
-            lines.append(header + "transform/matrix " + utils.mat4x4ToString(obj.matrix_world))
-
-        # write to disk
-        utils.write(self.filepath, lines)
-
-        return {'FINISHED'}
+    material_file_path = StringProperty(
+            name="Path to material definition file",
+            description="Path to the file that hold acoustic materials definition",
+            default="//", maxlen=1024, subtype="FILE_PATH",
+            )
 
 
-def menu_export(self, context):
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".txt"
-    self.layout.operator(ExportEvertims.bl_idname, text="Evertims (.txt)")
+# ############################################################
+# Register / Unregister
+# ############################################################
 
 
 def register():
-    bpy.utils.register_module(__name__)
 
-    # bpy.types.INFO_MT_file_import.append(menu_import)
-    bpy.types.INFO_MT_file_export.append(menu_export)
+    bpy.utils.register_class(EvertimsSettings)
+    bpy.utils.register_class(EvertimsPreferences)
+
+    ui.register()
+    operators.register()
+
+    bpy.types.Scene.evertims = PointerProperty(type=EvertimsSettings)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
 
-    # bpy.types.INFO_MT_file_import.remove(menu_import)
-    bpy.types.INFO_MT_file_export.remove(menu_export)
+    bpy.utils.unregister_class(EvertimsSettings)
+    bpy.utils.unregister_class(EvertimsPreferences)
 
-if __name__ == "__main__":
-    register()
+    ui.unregister()
+    operators.unregister()
+
+    del bpy.types.Scene.evertims

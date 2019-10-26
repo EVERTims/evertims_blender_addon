@@ -1,0 +1,27 @@
+/material/name a_0
+/material/a_0/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_0/absorption 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+
+/material/name a_05
+/material/a_05/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_05/absorption 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5
+
+/material/name a_1
+/material/a_1/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_1/absorption 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+
+/material/name a_ascending
+/material/a_ascending/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_ascending/absorption 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
+
+/material/name a_descending
+/material/a_descending/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_descending/absorption 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1
+
+/material/name a_lump1
+/material/a_lump1/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_lump1/absorption 0.1 0.3 0.5 0.8 0.6 0.4 0.2 0.1
+
+/material/name a_lump2
+/material/a_lump2/frequencies 125 250 500 1000 2000 4000 8000 16000
+/material/a_lump2/absorption 0.1 0.6 0.2 0.7 0.3 0.8 0.4 0.9
