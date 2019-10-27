@@ -92,6 +92,9 @@ class EvertimsRun(Operator):
             # pass parameters to evertims
             self._evertims.setup(evertims)
 
+            # start evertims
+            self._evertims.start()
+
             # flag auralization on
             evertims.enable_auralization = True
 
@@ -194,6 +197,13 @@ class EvertimsExport(Operator):
     bl_label = "export scene"
     bl_idname = 'evert.export'
     bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+
+        evertims = context.scene.evertims
+        _evertims = Evertims()
+        _evertims.exportSceneAsOscList(evertims)
+        return {'FINISHED'}
 
 
 classes = (

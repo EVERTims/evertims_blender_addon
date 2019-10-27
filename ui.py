@@ -87,7 +87,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         # Define KX_GameObjects as EVERTims elements
         box = layout.box()
         box.enabled = not evertims.enable_auralization
-        box.label("Define as Evertims element", icon='GROUP')
+        box.label("Define components", icon='GROUP')
 
         col = box.column(align=True)
         col.prop_search(evertims, "room_object", bpy.data, "objects")
@@ -119,8 +119,10 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
             rowsub.operator("evert.run", text="Stop", icon="REC").arg ='stop'
 
         # Exporter
-        # rowsub = box.row(align=True)
-        # rowsub.operator("evert.export", text="Export", icon="TEXT").arg =''
+        box = layout.box()
+        box.label("Exporter", icon='NONE')
+        rowsub = box.row(align=True)
+        rowsub.operator("evert.export", text="Export scene to disk", icon="TEXT")
         # rowsub = box.row(align=True)
         # rowsub.operator("evert.crystalize", text="Crystalize visible rays", icon="HAIR").arg =''
 

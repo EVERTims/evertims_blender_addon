@@ -2,6 +2,8 @@ import bpy
 from .evertClass import *
 from . import OSC
 
+EXPORT_FILE_PATH = bpy.path.abspath("//evert-export.txt")
+
 class Evertims(AbstractOscSender):
     """
     Main EVERTims python module. Send scene information
@@ -37,6 +39,9 @@ class Evertims(AbstractOscSender):
         # debug
         self.dbg = config.debug_logs
 
+        # clear locals
+        self.clear()
+
         # get rooms
         kxObj = objects.get(config.room_object)
         self.rooms[kxObj.name] = EvertRoom(kxObj)
@@ -62,47 +67,59 @@ class Evertims(AbstractOscSender):
         self.drawRays = config.draw_rays
         self.drawOrderMax = config.draw_order_max
 
-        # start client
-        self.send('dsp', 1)
-        self.send('order', self.ismMaxOrder)
-        self.send('air', int(self.airAbsorption))
-        self.send('soundvelocity', self.soundVelocity)
-
-        # init ray tracer (must start before the others to miss nothing)
+        # init ray tracer
         if( self.drawRays ):
-
             # init ray manager
             self.rayManager = RayManager( (config.ip_local, config.port_read) )
             self.rayManager.dbg = config.debug_logs
             self.rayManager.drawOrderMax = config.draw_order_max
-            self.rayManager.start()
 
-        # start sub
+        # setup sub
         for obj in self.sources.values():
             obj.id = 1
             obj.dbg = config.debug_logs
             obj.initOsc(config.ip_remote, config.port_write)
             obj.setMoveThreshold(config.update_thresh_loc, config.update_thresh_rot)
-            obj.start()
 
         for obj in self.listeners.values():
             obj.id = 1
             obj.dbg = config.debug_logs
             obj.initOsc(config.ip_remote, config.port_write)
             obj.setMoveThreshold(config.update_thresh_loc, config.update_thresh_rot)
-            obj.start()
 
         for obj in self.rooms.values():
             obj.id = 1
             obj.dbg = config.debug_logs
             obj.initOsc(config.ip_remote, config.port_write)
-            obj.start()
-
-            # else:
-            #     print('### Cannot connect to evertims client (reveiver)')
 
         # debug
         if self.dbg: print('setup evertims complete')
+
+    def clear(self):
+
+        self.rooms.clear()
+        self.sources.clear()
+        self.listeners.clear()
+
+    def start(self):
+
+        # debug
+        if self.dbg: print('evertims start')
+
+        # start ray tracer (must start before the others to miss nothing)
+        if( self.drawRays ):
+            self.rayManager.start()
+
+        # start client
+        self.send('dsp', 1)
+        self.send('order', self.ismMaxOrder)
+        self.send('air', int(self.airAbsorption))
+        self.send('soundvelocity', self.soundVelocity)
+
+        # start sub
+        for obj in self.sources.values(): obj.start()
+        for obj in self.listeners.values(): obj.start()
+        for obj in self.rooms.values(): obj.start()
 
     def stop(self):
 
@@ -141,6 +158,69 @@ class Evertims(AbstractOscSender):
         # update ray tracer
         if( self.drawRays ):
             self.rayManager.update()
+
+    def exportSceneAsOscList(self, config):
+
+        from types import MethodType
+
+        # clear file
+        f = open(EXPORT_FILE_PATH,"w+")
+        f.write('')
+        f.close
+
+        # init
+        self.setup(config)
+
+        # save state
+        drawRays = self.drawRays
+        self.drawRays = False
+
+        # swicth osc callbacks to write to disk. using MethodType allows to keep passing "self" (really bounding method) to method 
+        # when invoking it
+        self.send = MethodType(sendToDisk, self)
+        for obj in self.rooms.values(): obj.send = MethodType(sendToDisk, obj)
+        for obj in self.sources.values(): obj.send = MethodType(sendToDisk, obj)
+        for obj in self.listeners.values(): obj.send = MethodType(sendToDisk, obj)
+
+        # run full sequence
+        self.start()
+        self.update()
+        self.stop()
+
+        # restore config
+        self.drawRays = drawRays
+
+def sendToDisk(self, header, content = None):
+
+    # open (create if doesn't exist) file
+    f = open(EXPORT_FILE_PATH,"a")
+
+    # create header
+    header = self.getOscHeader() + "/" + header
+
+    # filter message list 
+    discardList = ['dsp', 'destroy']
+    if( any(s in header for s in discardList) ):
+        return 
+
+    # shape message
+    if( content == None ):
+        msg = header
+    else:
+        # shape content (e.g. tuple to string)
+        if( isinstance(content, list) or isinstance(content, tuple) ):
+            contentStr = ''
+            for i in range(len(content)):
+                contentStr = contentStr + ' ' + str(round(content[i],4)) # avoid outputs like 1e-6
+        else:
+            contentStr = str(content)
+        msg = header + ' ' + contentStr
+
+    # write to file
+    f.write(msg + "\n")
+
+    # close file
+    f.close() 
 
     # def crystalizeVisibleRays(self):
     #     """
