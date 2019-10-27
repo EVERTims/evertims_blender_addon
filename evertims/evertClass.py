@@ -7,18 +7,18 @@ from .evertAbstractClasses import *
 
 class EvertRoom(AbstractObj):
 
-    def __init__(self, kx_obj):
+    def __init__(self, kx_obj_list):
         """
         Room constructor.
 
-        :param kx_obj: Blender Object representing EVERTims room
+        :param kx_obj_list: list of Blender Object representing EVERTims room
         :type kx_obj: KX_GameObject
         """
 
         # parent constructor
         super().__init__()
 
-        self.obj = kx_obj
+        self.objList = kx_obj_list
         self.osc['header'] = "room"
         self.id = 1
 
@@ -29,7 +29,9 @@ class EvertRoom(AbstractObj):
 
         # init locals
         self.is_updated = True
-        self.oldMaterialCollection = self.obj.data.materials
+        self.oldMaterialCollectionList = []
+        for obj in self.objList:
+            self.oldMaterialCollectionList.append( obj.data.materials )
 
         # add callback to stack
         bpy.app.handlers.scene_update_pre.append(self.check_for_updates_callback)        
@@ -44,12 +46,24 @@ class EvertRoom(AbstractObj):
 
     def update(self):
 
-        # check for material update
-        # DOESN'T WORK IF ONLY CHANGE MATERIAL NAME
-        # for e in self.obj.data.materials: print(e, dir(e))
-        if (self.obj.data is not None) and (self.oldMaterialCollection != self.obj.data.materials):
-            self.is_updated = True
-            self.oldMaterialCollection = self.obj.data.materials
+        # loop over objects in room
+        for iObj in range( len( self.objList )):
+
+            # check for material update (doesn't work if only change material name)
+            obj = self.objList[iObj]
+            oldMaterialCollection = self.oldMaterialCollectionList[iObj]
+            
+            # material has been updated 
+            if (obj.data is not None) and (oldMaterialCollection != obj.data.materials):
+
+                # update locals
+                self.oldMaterialCollectionList[iObj] = self.obj.data.materials
+
+                # flag update required
+                self.is_updated = True
+
+            # check for geometry update
+            # ... (happening in scene callback were it belongs)
         
         # need update
         if( self.is_updated ):
@@ -63,28 +77,36 @@ class EvertRoom(AbstractObj):
     def check_for_updates_callback(self, scene):
 
         # check for mesh update based on blender is_updated internal routine
-        self.is_updated = self.is_updated or self.obj.is_updated
-
+        self.is_updated = self.is_updated or any( obj.is_updated for obj in self.objList )
 
     def sendRoom(self):
         
-        # init define
+        # warn client that room definition is about to start
         self.send("definestart")
 
-        (facesMatList, facesVertList) = evertUtils.getFacesMatVertList(self.obj)
+        # init loop 
+        faceId = 1
 
-        # loop over faces
-        for iFace in range( len( facesMatList ) ):
+        # loop over room objects
+        for obj in self.objList:
 
-            # send face id
-            faceId = iFace + 1
-            self.send("face", faceId)
+            # get list of faces vertices with associated materials
+            (facesMatList, facesVertList) = evertUtils.getFacesMatVertList(obj)
 
-            # send face material
-            self.send("face/"+str(faceId)+"/material", facesMatList[iFace])
+            # loop over faces
+            for iFace in range( len( facesMatList ) ):
 
-            # send face triangles
-            self.send("face/"+str(faceId)+"/triangles/xyz", facesVertList[iFace])
+                # send face id
+                self.send("face", faceId)
+
+                # send face material
+                self.send("face/"+str(faceId)+"/material", facesMatList[iFace])
+
+                # send face triangles
+                self.send("face/"+str(faceId)+"/triangles/xyz", facesVertList[iFace])
+
+                # increment face id
+                faceId += 1
 
         # end define
         self.send("defineover")

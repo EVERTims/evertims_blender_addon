@@ -80,14 +80,25 @@ class EvertimsRun(Operator):
                     evertims.materials = utils.dict2str(matDict)
 
             # check room materials are acoustic materials
-            objects = bpy.context.scene.objects
-            room = objects.get(evertims.room_object)
-            materialSlots = room.material_slots
-            matDict = utils.str2dict(evertims.materials)
-            for mat in materialSlots:
-                if not mat.name in matDict:
-                    self.report({'ERROR'}, 'room ' + room.name + ' material ' + mat.name + ': not an acoustic material')
+            roomObjects = bpy.data.groups[evertims.room_object].objects
+            for obj in roomObjects:
+
+                # get object materials
+                materialSlots = obj.material_slots
+
+                # abort if no material defined
+                if( len( materialSlots ) == 0 ):
+                    self.report({'ERROR'}, 'room object ' + obj.name +' has no material')
                     return {'CANCELLED'}
+
+                # get list of acceptable materials
+                matDict = utils.str2dict(evertims.materials)
+
+                # loop over materials in object, check if acceptable
+                for mat in materialSlots:
+                    if not mat.name in matDict:
+                        self.report({'ERROR'}, 'room object ' + obj.name +' material ' + mat.name + ': not an acoustic material')
+                        return {'CANCELLED'}
 
             # pass parameters to evertims
             self._evertims.setup(evertims)

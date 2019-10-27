@@ -41,8 +41,9 @@ class Evertims(AbstractOscSender):
         self.clear()
 
         # get rooms
-        kxObj = objects.get(config.room_object)
-        self.rooms[kxObj.name] = EvertRoom(kxObj)
+        roomGroupName = config.room_object
+        kxObjList = bpy.data.groups[roomGroupName].objects
+        self.rooms[roomGroupName] = EvertRoom(kxObjList)
 
         # get sources
         kxObj = objects.get(config.source_object)
