@@ -120,6 +120,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
 
         # Exporter
         box = layout.box()
+        box.enabled = not evertims.enable_auralization
         box.label("Exporter", icon='NONE')
         rowsub = box.row(align=True)
         rowsub.operator("evert.export", text="Export scene to disk", icon="TEXT")
