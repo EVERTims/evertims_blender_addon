@@ -119,6 +119,8 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
             rowsub.operator("evert.run", text="Start", icon="RADIOBUT_OFF").arg ='start'
         else:
             rowsub.operator("evert.run", text="Stop", icon="REC").arg ='stop'
+        rowsub = box.row(align=True)
+        rowsub.label("avoid using undo during auralization")
 
         # Exporter
         box = layout.box()

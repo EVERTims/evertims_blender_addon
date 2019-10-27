@@ -11,7 +11,7 @@ class EvertimsRun(Operator):
     """Run auralization"""
     bl_label = "run auralization"
     bl_idname = 'evert.run'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
 
     arg = bpy.props.StringProperty()
 
@@ -167,7 +167,7 @@ class EvertimsImport(Operator):
     """Import misc."""
     bl_label = "various import operations"
     bl_idname = 'evert.import'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
 
     arg = bpy.props.StringProperty()
 
@@ -207,7 +207,7 @@ class EvertimsExport(Operator):
     """Export scene elements"""
     bl_label = "export scene"
     bl_idname = 'evert.export'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
 
     def execute(self, context):
 
