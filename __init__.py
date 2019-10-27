@@ -94,12 +94,17 @@ class EvertimsSettings(PropertyGroup):
     update_thresh_loc = FloatProperty(
             name="Update threshold location (m)",
             description="Minimum amount of translation required to trigger an update of a given source/listener location",
-            default=0.1,
+            default=0.1, min=0
             )
     update_thresh_rot = FloatProperty(
             name="Update threshold rotation (deg)",
             description="Minimum amount of rotation required to trigger an update of a given source/listener location",
-            default=1,
+            default=1, min=0, max=360
+            )
+    update_thresh_time = FloatProperty(
+            name="Update threshold time (sec)",
+            description="Minimum amount of time required between two room updates",
+            default=1, min=0
             )
 
     # Drawer configuration

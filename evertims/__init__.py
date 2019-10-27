@@ -90,6 +90,7 @@ class Evertims(AbstractOscSender):
             obj.id = 1
             obj.dbg = config.debug_logs
             obj.initOsc(config.ip_remote, config.port_write)
+            obj.udpateInterval = config.update_thresh_time
 
         # debug
         if self.dbg: print('setup evertims complete')

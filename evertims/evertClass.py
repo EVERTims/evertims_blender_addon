@@ -3,7 +3,7 @@ import socket
 import bgl
 from . import ( evertUtils )
 from .evertAbstractClasses import *
-
+import time
 
 class EvertRoom(AbstractObj):
 
@@ -21,6 +21,11 @@ class EvertRoom(AbstractObj):
         self.objList = kx_obj_list
         self.osc['header'] = "room"
         self.id = 1
+
+        # throttle udpate mechanism
+        self.udpateInterval = 1 # in seconds
+        self.nextUpdateTime = 0 # in seconds
+        self.is_udpated_tmp = False
 
     def start(self):
         
@@ -76,8 +81,26 @@ class EvertRoom(AbstractObj):
 
     def check_for_updates_callback(self, scene):
 
-        # check for mesh update based on blender is_updated internal routine
-        self.is_updated = self.is_updated or any( obj.is_updated for obj in self.objList )
+        # discard if update already planned
+        if( self.is_updated ): return 
+
+        # systematic check on local kx objects udpates (to make sure not to miss it regardless of time throttling)
+        # (blender internally set obj.is_updated for "one frame" of scene_update_pre if object has been updated)
+        self.is_udpated_tmp = self.is_udpated_tmp or any( obj.is_updated for obj in self.objList )
+
+        # check if time to update (time throttling)
+        currentTime = time.time()
+        if( currentTime > self.nextUpdateTime ):
+
+            # transfer update required state, from tmp to main
+            self.is_updated = self.is_udpated_tmp
+
+            # reset tmp
+            self.is_udpated_tmp = False
+
+            # update locals
+            self.nextUpdateTime = currentTime + self.udpateInterval
+
 
     def sendRoom(self):
         
