@@ -1848,7 +1848,7 @@ class OSCServer(UDPServer, OSCAddressSpace):
 	# DEBUG: print error-tracebacks (to stderr)?
 	print_tracebacks = False
 	
-	def __init__(self, server_address, client=None, return_port=0):
+	def __init__(self, server_address, client=None, return_port=0, max_packet_size=8192):
 		"""Instantiate an OSCServer.
 		  - server_address ((host, port) tuple): the local host & UDP-port
 		  the server listens on
@@ -1858,6 +1858,7 @@ class OSCServer(UDPServer, OSCAddressSpace):
 		  for replies coming from this server.
 		"""
 		UDPServer.__init__(self, server_address, self.RequestHandlerClass)
+		UDPServer.max_packet_size = max_packet_size
 		OSCAddressSpace.__init__(self)
 		
 		self.setReturnPort(return_port)

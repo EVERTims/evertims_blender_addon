@@ -176,7 +176,7 @@ class RayManager():
 
 
     def start(self):
-        self.oscServer = OSC.OSCServer(self.serverAddress)
+        self.oscServer = OSC.OSCServer(self.serverAddress, max_packet_size=65507) # max packet size matches spat max packet send size
         # self.oscServer = OSC.ThreadingOSCServer(self.serverAddress)
         self.oscServer.addMsgHandler('default', self.oscCallback)
         # self.oscServer.serve_forever()
