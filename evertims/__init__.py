@@ -2,8 +2,6 @@ import bpy
 from .evertClass import *
 from . import OSC
 
-EXPORT_FILE_PATH = bpy.path.abspath("//evert-export.txt")
-
 class Evertims(AbstractOscSender):
     """
     Main EVERTims python module. Send scene information
@@ -163,8 +161,11 @@ class Evertims(AbstractOscSender):
 
         from types import MethodType
 
+        # define file path local (can't make it global because of weird bpy behavior)
+        filePath = bpy.path.abspath("//evert-export.txt")
+
         # clear file
-        f = open(EXPORT_FILE_PATH,"w+")
+        f = open(filePath,"w+")
         f.write('')
         f.close
 
@@ -192,8 +193,11 @@ class Evertims(AbstractOscSender):
 
 def sendToDisk(self, header, content = None):
 
+    # define file path local (can't make it global because of weird bpy behavior)
+    filePath = bpy.path.abspath("//evert-export.txt")
+
     # open (create if doesn't exist) file
-    f = open(EXPORT_FILE_PATH,"a")
+    f = open(filePath,"a")
 
     # create header
     header = self.getOscHeader() + "/" + header
