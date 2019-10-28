@@ -65,6 +65,10 @@ class EvertRoom(AbstractObj):
         # loop over objects in room, check for material change
         for iObj in range( len( self.objList )):
 
+            # sanity check (if object was added in group during auralization, 
+            # as self.objList shallow copy will reflect that change)
+            if( iObj >= len(self.oldMaterialCollectionList) ): return 
+
             # locals
             obj = self.objList[iObj]
             oldMaterialCollection = self.oldMaterialCollectionList[iObj]
