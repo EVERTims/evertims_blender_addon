@@ -247,6 +247,7 @@ class RayManager():
             self.draw_handler_handle = None
             if self.dbg: print(self.__class__.__name__, 'removed evertims module raytracing callback from draw_handler')
 
+
     # callback invoked by osc server upon message received
     def oscCallback(self, addr, tags, data, client_address):
 
@@ -376,46 +377,76 @@ class RayManager():
                     bgl.glNormal3f(0.0,0.0,1.0)
                     bgl.glShadeModel(bgl.GL_SMOOTH);
 
+
     # debug: print unexpected osc msg to console
     def unexpectedMsgAddressWarning(self, addr):
         print("received osc message not handled: " + msg.addr)
+
 
     # running callback 
     def update(self):
         self.oscServer.handle_request()
 
 
-    # # Convert existing rays into curves that will remain in the blender scene after auralization stops
-    # def crystalizeVisibleRays(self):
+    # Convert existing rays into curves that will remain in the blender scene after auralization stops
+    def crystalizeVisibleRays(self):
 
-    #     # discard if no rays to draw
-    #     if( len( self.rayDict ) == 0 ):
-    #         return
+        # get segment count
+        segments = self.getListOfVisibleSegments()
 
-    #     # create the Curve Datablock
-    #     curveData = bpy.data.curves.new('EvertRay', type='CURVE')
-    #     curveData.dimensions = '3D'
-    #     curveData.resolution_u = 2
+        # discard if empty 
+        if( len(segments) == 0 ): return 
 
-    #     # map coords to spline
-    #     polyline = curveData.splines.new('POLY')
-    #     polyline.points.add( len(self.rayDict)*2 )
-    #     count = 0
-    #     for rayID, ray in self.rayDict.items():
-    #         polyline.points[count].co = (ray.p1[0], ray.p1[1], ray.p1[2], 1)
-    #         count += 1
-    #         polyline.points[count].co = (ray.p2[0], ray.p2[1], ray.p2[2], 1)
-    #         count += 1
-    #         print( "{} {} {}".format(ray.p1[0], ray.p1[1], ray.p1[2]))
-    #         print( "{} {} {}".format(ray.p2[0], ray.p2[1], ray.p2[2]))
+        # create the Curve Datablock
+        curveData = bpy.data.curves.new('EvertRay', type='CURVE')
+        curveData.dimensions = '3D'
+        curveData.resolution_u = 2
+
+        # map coords to spline
+        polyline = curveData.splines.new('POLY')
+        polyline.points.add( len(segments)*2 )
+
+        # loop over segments
+        count = 0
+        for segment in segments:
+
+            # set polyline points start / end positions
+            polyline.points[count].co = (segment[0], segment[1], segment[2], 1)
+            count += 1
+            polyline.points[count].co = (segment[3], segment[4], segment[5], 1)
+            count += 1
+
+        # create Object
+        curveOB = bpy.data.objects.new('EvertRay', curveData)
+        curveData.bevel_depth = 0.01
+
+        # attach to scene and validate context
+        scn = bpy.context.scene
+        scn.objects.link(curveOB)
+        scn.objects.active = curveOB
 
 
-    #     # create Object
-    #     curveOB = bpy.data.objects.new('EvertRay', curveData)
-    #     curveData.bevel_depth = 0.01
+    # count total number of segment if current solutions
+    def getListOfVisibleSegments(self):
 
-    #     # attach to scene and validate context
-    #     scn = bpy.context.scene
-    #     scn.objects.link(curveOB)
-    #     scn.objects.active = curveOB
+        # init locals
+        segments = []
 
+        # loop over solutions
+        for solutionId, solution in self.solutions.items():
+
+            # loop over paths
+            for pathId, path in solution.paths.items():
+
+                # discard draw if path order above draw limit 
+                if( path.order > self.drawOrderMax ): continue
+
+                # loop over points (segments)
+                for iPoint in range(len(path.points)-1):
+
+                    # extract segment points coordinates
+                    p1 = path.points[iPoint]
+                    p2 = path.points[iPoint+1]
+                    segments.append( [p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]] )
+
+        return segments

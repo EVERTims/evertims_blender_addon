@@ -143,6 +143,14 @@ class EvertimsRun(Operator):
 
             return {'FINISHED'}
 
+        # crystalize visible rays
+        elif self.arg == 'crystalize':
+
+            self._evertims.crystalizeVisibleRays()
+            
+            return {'FINISHED'}
+
+
     # local modal callback (run always)
     def modal(self, context, event):
 
@@ -244,6 +252,20 @@ class EvertimsExport(Operator):
 
         return {'FINISHED'}
 
+# export scene to disk
+class EvertimsCrystalize(Operator):
+    
+    # header
+    bl_label = "crystalize acoustic rays"
+    bl_idname = 'evert.crystalize'
+    bl_options = {'REGISTER'}
+
+    # method called from UI
+    def execute(self, context):
+
+        
+
+        return {'FINISHED'}
 
 # ############################################################
 # Register / Unregister

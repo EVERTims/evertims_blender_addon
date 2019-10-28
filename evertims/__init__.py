@@ -186,10 +186,10 @@ class Evertims(AbstractOscSender):
         self.drawRays = drawRays
 
 
-    # # Create a curve for all currently visible rays that will remain in the scene after 
-    # # the simulation is over
-    # def crystalizeVisibleRays(self):
-    #     if self.rayManager: self.rayManager.crystalizeVisibleRays()
+    # Create a curve for all currently visible rays that will remain in the scene after 
+    # the simulation is over
+    def crystalizeVisibleRays(self):
+        if self.rayManager: self.rayManager.crystalizeVisibleRays()
     
 
 # method replacing the "send" method of all AbstractOscSenders, writing to disk instead
