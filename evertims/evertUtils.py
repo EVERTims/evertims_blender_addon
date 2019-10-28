@@ -2,11 +2,15 @@ import bmesh
 import mathutils
 import math
 
-# method from the Print3D add-on
+
+# ############################################################
+# Evert mesh and transform utilities
+# ############################################################
+
+
+# method from the Print3D add-on: create a bmesh from an object 
+# (for triangulatio, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
-    """
-    Returns a transformed, triangulated copy of the mesh
-    """
 
     assert(obj.type == 'MESH')
 
@@ -26,9 +30,6 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
             bm = bmesh.new()
             bm.from_mesh(me)
 
-    # TODO. remove all customdata layers.
-    # would save ram
-
     if transform:
         bm.transform(obj.matrix_world)
 
@@ -37,15 +38,18 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
 
     return bm
 
+
+# given a Blender object, return list of faces vertices and associated materials 
 def getFacesMatVertList(obj):
     
     # get bmesh
     bm = bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=True)
     
+    # init locals
     facesMatList = []
     facesVertList = []
     
-    # loop over faces
+    # loop over mesh faces
     for face in bm.faces:
         
         # get material
@@ -60,29 +64,31 @@ def getFacesMatVertList(obj):
         
     return (facesMatList, facesVertList)
 
-def areDifferent_Mat44(mat1, mat2, thresholdLoc = 1.0, thresholdRot = 1.0):
-    """
-    Check if 2 input matrices are different above a certain threshold.
 
-    :param mat1: input Matrix
-    :param mat2: input Matrix
-    :param thresholdLoc: threshold above which delta translation between the 2 matrix has to be for them to be qualified as different
-    :param thresholdRot: threshold above which delta rotation between the 2 matrix has to be for them to be qualified as different
-    :type mat1: mathutils.Matrix
-    :type mat2: mathutils.Matrix
-    :type thresholdLoc: Float
-    :type thresholdRot: Float
-    :return: a boolean stating wheter the two matrices are different
-    :rtype: Boolean
-    """
+# check if 2 input matrices are different above a certain threshold.
+def areDifferent_Mat44(mat1, mat2, thresholdLoc = 1.0, thresholdRot = 1.0):
+
+    # init locals
     areDifferent = False
-    jnd_vect = mathutils.Vector((thresholdLoc,thresholdLoc,thresholdRot))
+
+    # extract matrices translation and rotation components
     t1, t2 = mat1.to_translation(), mat2.to_translation()
     r1, r2 = mat1.to_euler(), mat2.to_euler()
-    for n in range(3):
-        if (abs(t1[n]-t2[n]) > thresholdLoc) or (abs(math.degrees(r1[n]-r2[n])) > thresholdRot): areDifferent = True
-    return areDifferent
 
+    # loop over components xyz (translation) and ypr (rotation), check for differences above threshold
+    for n in range(3):
+
+        # check for diff above threshold: translation
+        if( abs(t1[n]-t2[n]) > thresholdLoc ): return True
+
+        # check for diff above threshold: rotation
+        if( abs(math.degrees(r1[n]-r2[n])) > thresholdRot ): return True
+
+    # default (no difference)
+    return False
+
+
+# convert blender 4x4 matrix to tuple
 def mat4x4ToTuple(mat):
     
     return ( \

@@ -36,8 +36,17 @@ else:
     from . import (
         ui,
         operators,
-        evertims # for debug purpose: reloading twice the addon with F8 will now reload the content of the ./evertims module as well
+        evertims
         )
+    # import of the evertims module is not necessary here. Added for debug: reloading twice 
+    # the addon will now reload the content of the ./evertims module as well (at least its 
+    # __init__)
+
+
+# ############################################################
+# Add-on entry point + property definition
+# ############################################################
+
 
 class EvertimsSettings(PropertyGroup):
 
@@ -79,7 +88,7 @@ class EvertimsSettings(PropertyGroup):
     sound_velocity = FloatProperty(
             name="Sound velocity",
             description="Travelling speed of sound during simulation",
-            default=343.3, max = 600, min = 1
+            default=343.3, max=600, min=1
             )
     air_absorption = BoolProperty(
             name="Enable air absorption",
@@ -89,7 +98,7 @@ class EvertimsSettings(PropertyGroup):
     ism_max_order = IntProperty(
             name="Max ISM order",
             description="Maximum reflection order considered during the image source simulation",
-            default=3, min = 1, max = 10
+            default=3, min=1, max=10
             )
     update_thresh_loc = FloatProperty(
             name="Update threshold location (m)",
@@ -131,11 +140,6 @@ class EvertimsSettings(PropertyGroup):
             )
 
     # Scene components
-    # rooms = CollectionProperty(
-    #         name="Rooms",
-    #         description="List of room objects",
-    #         type = ListItem
-    #         )
     room_object = StringProperty(
             name="Room",
             description="Current room selected for auralization",
@@ -156,6 +160,7 @@ class EvertimsSettings(PropertyGroup):
             description="A string (shaped from dict) of all available materials and their properties",
             default="", maxlen=0, # unlimited length
             ) 
+
 
 class EvertimsPreferences(AddonPreferences):
     bl_idname = __name__

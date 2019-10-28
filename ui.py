@@ -3,9 +3,11 @@ import bpy.utils.previews
 import os
 from bpy.types import Panel
 
+
 # ############################################################
-# User Interface
+# User interface definition
 # ############################################################
+
 
 class EvertimsUIBase:
     bl_space_type = "VIEW_3D"
@@ -13,32 +15,32 @@ class EvertimsUIBase:
     bl_description= ""
     bl_category = "Evertims"
 
+
 class EvertimsToolBar(EvertimsUIBase, Panel):
 
     bl_label = "Evertims"
 
     @staticmethod
-
     def draw(self, context):
-        layout = self.layout
 
+        # get locals
+        layout = self.layout
         scene = context.scene
         evertims = scene.evertims
         addon_prefs = context.user_preferences.addons[__package__].preferences
-        # layout.enabled = True
 
         # Network configuration
         box = layout.box()
         box.enabled = not evertims.enable_auralization
         box.label("Network", icon='URL')
-
+        #
         rowsub = box.row(align=True)
         split = rowsub.split(percentage=0.6)
         colsub = split.column()
         colsub.prop(evertims, "ip_remote", text="ip remote")
         colsub = split.column()
         colsub.prop(evertims, "port_write", text="port write")
-
+        #
         rowsub = box.row(align=True)
         split = rowsub.split(percentage=0.6)
         colsub = split.column()
@@ -46,17 +48,11 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         colsub = split.column()
         colsub.prop(evertims, "port_read", text="port read")
 
-        # rowsub = box.row(align=True)
-        # if evertims.is_client_connected:
-        #     rowsub.label("client detected")
-        # else:
-        #     rowsub.label("client not detected")
-
         # Engine configuration
         box = layout.box()
         box.enabled = not evertims.enable_auralization
         box.label("Engine configuration", icon='PREFERENCES')
-
+        #
         rowsub = box.row(align=True)
         rowsub.prop(evertims, "engine_type", expand=False)
         rowsub = box.row(align=True)
@@ -65,6 +61,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub.prop(evertims, "sound_velocity", text="sound velocity (m/s)")
         rowsub = box.row(align=True)
         rowsub.prop(evertims, "air_absorption", text="enable air absorption")
+        #
         rowsub = box.row(align=True)
         rowsub.label("Update throttle:")
         rowsub = box.row(align=True)
@@ -75,6 +72,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         colsub.prop(evertims, "update_thresh_rot", text="rot (deg)")
         rowsub = box.row(align=True)
         rowsub.prop(evertims, "update_thresh_time", text="time (sec)")
+        #
         rowsub = box.row(align=True)
         rowsub.prop(addon_prefs, "material_file_path", text="material file")
         rowsub = box.row(align=True)
@@ -86,11 +84,11 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         # rowsub = box.row(align=True)
         # rowsub.operator("evert.import_template", text="Template scene", icon='MESH_CUBE').arg = 'scene'
 
-        # Define KX_GameObjects as EVERTims elements
+        # Define scene objects as evertims elements
         box = layout.box()
         box.enabled = not evertims.enable_auralization
         box.label("Define components", icon='GROUP')
-
+        #
         col = box.column(align=True)
         col.prop_search(evertims, "room_object", bpy.data, "groups")
         col = box.column(align=True)
@@ -101,7 +99,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         # Auralization run
         box = layout.box()
         box.label("Run auralization", icon='LAMP_AREA')
-
+        #
         rowsub = box.row(align=True)
         rowsub.enabled = not evertims.enable_auralization
         split = rowsub.split(percentage=0.5)
@@ -110,10 +108,11 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         colsub = split.column()
         colsub.prop(evertims, "draw_order_max", text="draw order max")
         colsub.enabled = not evertims.enable_auralization
-
+        #
         rowsub = box.row(align=True)
         rowsub.prop(evertims, "debug_logs", text="print logs to console")
         rowsub.enabled = not evertims.enable_auralization
+        #
         rowsub = box.row(align=True)
         if not evertims.enable_auralization:
             rowsub.operator("evert.run", text="Start", icon="RADIOBUT_OFF").arg ='start'
