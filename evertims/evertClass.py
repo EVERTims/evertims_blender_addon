@@ -76,7 +76,7 @@ class EvertRoom(AbstractObj):
                 self.is_updated = True
 
                 # update locals
-                self.oldMaterialCollectionList[iObj] = self.obj.data.materials
+                self.oldMaterialCollectionList[iObj] = obj.data.materials
 
         # note: no need to check for geometry update, handled internally by blender
         
