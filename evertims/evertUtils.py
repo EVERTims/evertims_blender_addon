@@ -4,12 +4,12 @@ import math
 
 
 # ############################################################
-# Evert mesh and transform utilities
+# Evertims mesh and transform utilities
 # ############################################################
 
 
 # method from the Print3D add-on: create a bmesh from an object 
-# (for triangulatio, apply modifiers, etc.)
+# (for triangulation, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
 
     assert(obj.type == 'MESH')
