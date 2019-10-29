@@ -404,7 +404,7 @@ class RayManager():
         # create the Curve Datablock
         curveData = bpy.data.curves.new('EvertRay', type='CURVE')
         curveData.dimensions = '3D'
-        curveData.fill_mode = 'Full'
+        curveData.fill_mode = 'FULL'
         curveData.resolution_u = 1
 
         # loop over paths
