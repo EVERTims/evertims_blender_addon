@@ -396,29 +396,32 @@ class RayManager():
     def crystalizeVisibleRays(self):
 
         # get segment count
-        segments = self.getListOfVisibleSegments()
+        pathsPoints = self.getListOfVisibleSegments()
 
         # discard if empty 
-        if( len(segments) == 0 ): return 
+        if( len(pathsPoints) == 0 ): return 
 
         # create the Curve Datablock
         curveData = bpy.data.curves.new('EvertRay', type='CURVE')
         curveData.dimensions = '3D'
-        curveData.resolution_u = 2
+        curveData.fill_mode = 'Full'
+        curveData.resolution_u = 1
 
-        # map coords to spline
-        polyline = curveData.splines.new('POLY')
-        polyline.points.add( len(segments)*2 )
+        # loop over paths
+        for pathPoints in pathsPoints:
 
-        # loop over segments
-        count = 0
-        for segment in segments:
+            # create new spline
+            polyline = curveData.splines.new('POLY')
 
-            # set polyline points start / end positions
-            polyline.points[count].co = (segment[0], segment[1], segment[2], 1)
-            count += 1
-            polyline.points[count].co = (segment[3], segment[4], segment[5], 1)
-            count += 1
+            # create points (spline already has one)
+            polyline.points.add( len(pathPoints) - 1 )
+
+            # loop over path points
+            for iPoint in range( len(pathPoints) ):
+
+                # set polyline points start / end positions
+                p = pathPoints[iPoint]
+                polyline.points[iPoint].co = (p[0], p[1], p[2], 1)
 
         # create Object
         curveOB = bpy.data.objects.new('EvertRay', curveData)
@@ -434,7 +437,7 @@ class RayManager():
     def getListOfVisibleSegments(self):
 
         # init locals
-        segments = []
+        pathsPoints = []
 
         # loop over solutions
         for solutionId, solution in self.solutions.items():
@@ -445,12 +448,16 @@ class RayManager():
                 # discard draw if path order above draw limit 
                 if( path.order > self.drawOrderMax ): continue
 
-                # loop over points (segments)
-                for iPoint in range(len(path.points)-1):
+                # init list of points
+                pathPoints = []
+
+                # loop over points in path
+                for p in path.points:
 
                     # extract segment points coordinates
-                    p1 = path.points[iPoint]
-                    p2 = path.points[iPoint+1]
-                    segments.append( [p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]] )
+                    pathPoints.append( [round(p[0],2),round(p[1],2),round(p[2],2)] )
 
-        return segments
+                # save segments back to local
+                pathsPoints.append(pathPoints)
+
+        return pathsPoints
