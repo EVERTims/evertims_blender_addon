@@ -100,8 +100,13 @@ class EvertimsRun(Operator):
                     self.report({'ERROR'}, 'undefined material file path')
                     return {'CANCELLED'}
 
-            # sanity check: all objects in room group have acoustic materials
+            # sanity check: room group contains at least one object
             roomObjects = bpy.data.groups[evertims.room_object].objects
+            if( len(roomObjects) == 0 ):
+                self.report({'ERROR'}, 'room group is empty')
+                return {'CANCELLED'}
+
+            # sanity check: all objects in room group have acoustic materials
             for obj in roomObjects:
 
                 # get object materials
