@@ -130,10 +130,10 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub = box.row(align=True)
         rowsub.enabled = not evertims.enable_auralization
         rowsub.operator("evert.export", text="Export scene to disk", icon="TEXT")
-        # # crystalize acoustic rays in scene as curves
-        # rowsub = box.row(align=True)
-        # rowsub.enabled = evertims.enable_auralization
-        # rowsub.operator("evert.run", text="Crystalize visible rays", icon="HAIR").arg = 'crystalize'
+        # crystalize acoustic rays in scene as curves
+        rowsub = box.row(align=True)
+        rowsub.enabled = evertims.enable_auralization
+        rowsub.operator("evert.run", text="Crystalize visible rays", icon="HAIR").arg = 'crystalize'
 
 
 # ############################################################
