@@ -60,21 +60,21 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub = box.row(align=True)
         rowsub.prop(evertims, "sound_velocity", text="sound velocity (m/s)")
         rowsub = box.row(align=True)
-        rowsub.prop(evertims, "air_absorption", text="enable air absorption")
+        rowsub.prop(evertims, "air_absorption", text="Enable air absorption")
         #
         rowsub = box.row(align=True)
         rowsub.label("Update throttle:")
         rowsub = box.row(align=True)
         split = rowsub.split(percentage=0.5)
         colsub = split.column()
-        colsub.prop(evertims, "update_thresh_loc", text="loc (m)")
+        colsub.prop(evertims, "update_thresh_loc", text="Loc (m)")
         colsub = split.column()
-        colsub.prop(evertims, "update_thresh_rot", text="rot (deg)")
+        colsub.prop(evertims, "update_thresh_rot", text="Rot (deg)")
         rowsub = box.row(align=True)
-        rowsub.prop(evertims, "update_thresh_time", text="time (sec)")
+        rowsub.prop(evertims, "update_thresh_time", text="Time (sec)")
         #
         rowsub = box.row(align=True)
-        rowsub.prop(addon_prefs, "material_file_path", text="material file")
+        rowsub.prop(addon_prefs, "material_file_path", text="Material file")
         rowsub = box.row(align=True)
         rowsub.operator("evert.import", text="Refresh Materials", icon="FILE_REFRESH").arg ='materials'
 
@@ -104,22 +104,23 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub.enabled = not evertims.enable_auralization
         split = rowsub.split(percentage=0.5)
         colsub = split.column()
-        colsub.prop(evertims, "draw_rays", text="draw paths")
+        colsub.prop(evertims, "draw_rays", text="Draw acoustic paths")
         colsub = split.column()
-        colsub.prop(evertims, "draw_order_max", text="draw order max")
+        colsub.prop(evertims, "draw_order_max", text="Draw order max")
         colsub.enabled = not evertims.enable_auralization
         #
         rowsub = box.row(align=True)
-        rowsub.prop(evertims, "debug_logs", text="print logs to console")
+        rowsub.prop(evertims, "debug_logs", text="Print logs to console")
         rowsub.enabled = not evertims.enable_auralization
         #
+        rowsub = box.row(align=True)
+        rowsub.alignment = 'CENTER'
+        rowsub.label("(avoid using undo during auralization)")
         rowsub = box.row(align=True)
         if not evertims.enable_auralization:
             rowsub.operator("evert.run", text="Start", icon="RADIOBUT_OFF").arg ='start'
         else:
             rowsub.operator("evert.run", text="Stop", icon="REC").arg ='stop'
-        rowsub = box.row(align=True)
-        rowsub.label("avoid using undo during auralization")
 
         # Exporter
         box = layout.box()
@@ -129,8 +130,8 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub = box.row(align=True)
         rowsub.enabled = not evertims.enable_auralization
         rowsub.operator("evert.export", text="Export scene to disk", icon="TEXT")
-        rowsub = box.row(align=True)
         # # crystalize acoustic rays in scene as curves
+        # rowsub = box.row(align=True)
         # rowsub.enabled = evertims.enable_auralization
         # rowsub.operator("evert.run", text="Crystalize visible rays", icon="HAIR").arg = 'crystalize'
 

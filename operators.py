@@ -73,17 +73,17 @@ class EvertimsRun(Operator):
 
             # sanity check: room defined
             if not evertims.room_object:
-                self.report({'ERROR'}, 'No room selected')
+                self.report({'ERROR'}, 'No room defined')
                 return {'CANCELLED'}
 
             # sanity check: source defined
             if not evertims.source_object:
-                self.report({'ERROR'}, 'No source selected')
+                self.report({'ERROR'}, 'No source defined')
                 return {'CANCELLED'}
 
             # sanity check: listener defined
             if not evertims.listener_object:
-                self.report({'ERROR'}, 'No listener selected')
+                self.report({'ERROR'}, 'No listener defined')
                 return {'CANCELLED'}
 
             # sanity check: room materials are acoustic materials
@@ -252,20 +252,6 @@ class EvertimsExport(Operator):
 
         return {'FINISHED'}
 
-# export scene to disk
-class EvertimsCrystalize(Operator):
-    
-    # header
-    bl_label = "crystalize acoustic rays"
-    bl_idname = 'evert.crystalize'
-    bl_options = {'REGISTER'}
-
-    # method called from UI
-    def execute(self, context):
-
-        
-
-        return {'FINISHED'}
 
 # ############################################################
 # Register / Unregister

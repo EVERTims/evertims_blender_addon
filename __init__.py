@@ -82,7 +82,7 @@ class EvertimsSettings(PropertyGroup):
             name="Engine type",
             description="Current method selected to compute auralization",
             items={
-            ("ISM", "image source (ism)", "Image Source Model")
+            ("ISM", "Image Source Model (ism)", "Image Source Model")
             },
             default="ISM")
     sound_velocity = FloatProperty(
