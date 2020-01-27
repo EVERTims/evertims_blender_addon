@@ -90,7 +90,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         box.label("Define components", icon='GROUP')
         #
         col = box.column(align=True)
-        col.prop_search(evertims, "room_object", bpy.data, "groups")
+        col.prop_search(evertims, "room_group", bpy.data, "groups")
         col = box.column(align=True)
         col.prop_search(evertims, "listener_object", bpy.data, "objects")
         col = box.column(align=True)

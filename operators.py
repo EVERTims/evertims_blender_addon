@@ -71,60 +71,11 @@ class EvertimsRun(Operator):
         # start auralization
         if self.arg == 'start':
 
-            # sanity check: room defined
-            if not evertims.room_object:
-                self.report({'ERROR'}, 'No room defined')
+            # check scene integrity
+            (status, msg) = utils.checkSceneIntegrity(context, evertims)
+            if status != {'PASS'}:
+                self.report(status, msg)
                 return {'CANCELLED'}
-
-            # sanity check: source defined
-            if not evertims.source_object:
-                self.report({'ERROR'}, 'No source defined')
-                return {'CANCELLED'}
-
-            # sanity check: listener defined
-            if not evertims.listener_object:
-                self.report({'ERROR'}, 'No listener defined')
-                return {'CANCELLED'}
-
-            # sanity check: room materials are acoustic materials
-            if not evertims.materials:
-
-                # load material file if path defined
-                if addon_prefs.material_file_path:
-                    filePath = bpy.path.abspath(addon_prefs.material_file_path)
-                    matDict = utils.loadMaterialFile(filePath)
-                    evertims.materials = utils.dict2str(matDict)
-                
-                # throw error otherwise
-                else:
-                    self.report({'ERROR'}, 'undefined material file path')
-                    return {'CANCELLED'}
-
-            # sanity check: room group contains at least one object
-            roomObjects = bpy.data.groups[evertims.room_object].objects
-            if( len(roomObjects) == 0 ):
-                self.report({'ERROR'}, 'room group is empty')
-                return {'CANCELLED'}
-
-            # sanity check: all objects in room group have acoustic materials
-            for obj in roomObjects:
-
-                # get object materials
-                materialSlots = obj.material_slots
-
-                # abort if no material defined
-                if( len( materialSlots ) == 0 ):
-                    self.report({'ERROR'}, 'room object ' + obj.name +' has no material')
-                    return {'CANCELLED'}
-
-                # get list of acoustic materials
-                matDict = utils.str2dict(evertims.materials)
-
-                # loop over materials in object, check if member of acoustic materials 
-                for mat in materialSlots:
-                    if not mat.name in matDict:
-                        self.report({'ERROR'}, 'room object ' + obj.name +' material ' + mat.name + ': not an acoustic material')
-                        return {'CANCELLED'}
 
             # pass parameters to evertims
             self._evertims.setup(evertims)
@@ -210,19 +161,18 @@ class EvertimsImport(Operator):
 
         # init locals
         evertims = context.scene.evertims
-        addon_prefs = context.user_preferences.addons[__package__].preferences
 
         # import materials
         if self.arg == 'materials':
 
-            # check if material path defined
-            if not addon_prefs.material_file_path:
-                self.report({'ERROR'}, 'undefined material file path')
+            # forced refresh
+            (status, msg) = utils.loadMaterials(context, evertims, True)
+            if status != {'PASS'}:
+                self.report(status, msg)
                 return {'CANCELLED'}
-            
-            # load material list from file
-            filePath = bpy.path.abspath(addon_prefs.material_file_path)
-            matDict = utils.loadMaterialFile(filePath)
+
+            # convert local string to dict
+            matDict = utils.str2dict(evertims.materials)
 
             # create materials if need be
             existingMatNameList = [x.name for x in bpy.data.materials]
@@ -230,9 +180,6 @@ class EvertimsImport(Operator):
                 if( matName not in existingMatNameList ):
                     bpy.data.materials.new(name=matName)
                     bpy.data.materials[matName].diffuse_color = (random.random(), random.random(), random.random())
-
-            # save material list to locals
-            evertims.materials = utils.dict2str(matDict)
 
         return {'FINISHED'}
 
@@ -251,6 +198,12 @@ class EvertimsExport(Operator):
         # init locals
         evertims = context.scene.evertims
         _evertims = Evertims()
+
+        # check scene integrity
+        (status, msg) = utils.checkSceneIntegrity(context, evertims)
+        if status != {'PASS'}:
+            self.report(status, msg)
+            return {'CANCELLED'}
 
         # export scene to disk
         _evertims.exportSceneAsOscList(evertims)

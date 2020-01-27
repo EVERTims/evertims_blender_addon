@@ -56,7 +56,7 @@ class Evertims(AbstractOscSender):
             self.rayManager.drawOrderMax = self.drawOrderMax
 
         # init scene objects: rooms
-        roomGroupName = config.room_object
+        roomGroupName = config.room_group
         kxObjList = bpy.data.groups[roomGroupName].objects
         self.rooms[roomGroupName] = EvertRoom(kxObjList)
 

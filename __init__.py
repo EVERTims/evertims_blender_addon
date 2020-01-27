@@ -140,7 +140,7 @@ class EvertimsSettings(PropertyGroup):
             )
 
     # Scene components
-    room_object = StringProperty(
+    room_group = StringProperty(
             name="Room",
             description="Current room selected for auralization",
             default="", maxlen=1024,
