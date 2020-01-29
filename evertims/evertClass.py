@@ -165,6 +165,7 @@ class EvertSourceListener(AbstractMovable):
         self.osc['header'] = typeOfInstance
         self.id = 1
 
+
 # used by ray manager. solutions are sent by Evertims client to ray drawer. a unique solution 
 # is created for each combination of source/listener/room in the scene
 class EvertSolution():

@@ -6,7 +6,6 @@ from bpy.types import Operator
 from . import utils
 from .evertims import ( Evertims )
 
-
 # ############################################################
 # Methods triggered from UI
 # ############################################################

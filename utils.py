@@ -154,7 +154,7 @@ def checkSceneIntegrity(context, evertims):
     # sanity check: room group contains at least one object
     roomObjects = bpy.data.groups[evertims.room_group].objects
     if( len(roomObjects) == 0 ):
-        return({'ERROR'}, 'room group is empty')
+        return({'ERROR'}, 'Room group is empty')
 
     # sanity check: all objects in room group have acoustic materials
     for obj in roomObjects:
@@ -164,7 +164,7 @@ def checkSceneIntegrity(context, evertims):
 
         # abort if no material defined
         if( len( materialSlots ) == 0 ):
-            return({'ERROR'}, 'room object ' + obj.name +' has no material')
+            return({'ERROR'}, 'Room object ' + obj.name +' has no material')
 
         # get list of acoustic materials
         matDict = str2dict(evertims.materials)
@@ -172,7 +172,7 @@ def checkSceneIntegrity(context, evertims):
         # loop over materials in object, check if member of acoustic materials 
         for mat in materialSlots:
             if not mat.name in matDict:
-                return({'ERROR'}, 'room object ' + obj.name +' material ' + mat.name + ': not an acoustic material')
+                return({'ERROR'}, 'Room object ' + obj.name +' material ' + mat.name + ': not an acoustic material')
 
     # notify success
     return ({'PASS'}, '')
