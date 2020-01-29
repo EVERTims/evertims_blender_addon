@@ -76,13 +76,13 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub = box.row(align=True)
         rowsub.prop(addon_prefs, "material_file_path", text="Material file")
         rowsub = box.row(align=True)
-        rowsub.operator("evert.import", text="Refresh Materials", icon="FILE_REFRESH").arg ='materials'
+        rowsub.operator("evertims.import", text="Refresh Materials", icon="FILE_REFRESH").arg ='materials'
 
         # Import elements
         # box = layout.box()
         # box.label("Import elements", icon='GROUP')
         # rowsub = box.row(align=True)
-        # rowsub.operator("evert.import_template", text="Template scene", icon='MESH_CUBE').arg = 'scene'
+        # rowsub.operator("evertims.import_template", text="Template scene", icon='MESH_CUBE').arg = 'scene'
 
         # Define scene objects as evertims elements
         box = layout.box()
@@ -118,9 +118,9 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub.label("(avoid using undo during auralization)")
         rowsub = box.row(align=True)
         if not evertims.enable_auralization:
-            rowsub.operator("evert.run", text="Start", icon="RADIOBUT_OFF").arg ='start'
+            rowsub.operator("evertims.run", text="Start", icon="RADIOBUT_OFF").arg ='start'
         else:
-            rowsub.operator("evert.run", text="Stop", icon="REC").arg ='stop'
+            rowsub.operator("evertims.run", text="Stop", icon="REC").arg ='stop'
 
         # Exporter
         box = layout.box()

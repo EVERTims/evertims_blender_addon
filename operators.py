@@ -17,7 +17,7 @@ class EvertimsRun(Operator):
     
     # header
     bl_label = "run auralization"
-    bl_idname = 'evert.run'
+    bl_idname = 'evertims.run'
     bl_options = {'REGISTER'}
 
     # shape input argument
@@ -150,7 +150,7 @@ class EvertimsImport(Operator):
 
     # header
     bl_label = "various import operations"
-    bl_idname = 'evert.import'
+    bl_idname = 'evertims.import'
     bl_options = {'REGISTER'}
 
     # shape input arguments
@@ -189,7 +189,7 @@ class EvertimsExport(Operator):
     
     # header
     bl_label = "export scene"
-    bl_idname = 'evert.export'
+    bl_idname = 'evertims.export'
     bl_options = {'REGISTER'}
 
     # method called from UI
