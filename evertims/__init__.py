@@ -2,7 +2,7 @@ import bpy
 from types import MethodType
 from .evertClass import *
 from . import OSC
-
+from .. import utils
 
 # ############################################################
 # Main Evertims python module 
@@ -45,6 +45,9 @@ class Evertims(AbstractOscSender):
         self.soundVelocity = config.sound_velocity
         self.drawRays = config.draw_rays
         self.drawOrderMax = config.draw_order_max
+
+        # save materials
+        self.materials = utils.str2matDict(config.materials)
 
         # init local OSC sender
         self.initOsc(config.ip_remote, config.port_write)
@@ -107,6 +110,13 @@ class Evertims(AbstractOscSender):
 
         # start ray tracer (before any other not to miss any incomming packet)
         if( self.drawRays ): self.rayManager.start()
+
+        # pass material definition to client
+        for key in self.materials:
+            mat = self.materials[key]
+            self.send('material/name', mat.name)
+            self.send('material/' + mat.name + '/frequencies', tuple(mat.frequencies))
+            self.send('material/' + mat.name + '/absorption', tuple(mat.absorptions))
 
         # start client
         self.send('dsp', 1)

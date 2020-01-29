@@ -172,7 +172,7 @@ class EvertimsImport(Operator):
                 return {'CANCELLED'}
 
             # convert local string to dict
-            matDict = utils.str2dict(evertims.materials)
+            matDict = utils.str2matDict(evertims.materials)
 
             # create materials if need be
             existingMatNameList = [x.name for x in bpy.data.materials]

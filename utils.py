@@ -1,5 +1,6 @@
 import json
 import bpy
+from .evertims import ( EvertMaterial )
 
 def dict2str(d):
     return json.dumps(d)
@@ -7,22 +8,99 @@ def dict2str(d):
 def str2dict(s):
     return json.loads(s) 
 
+# convert dict of mat to dict of arrays, json dumpable
+def matDict2str(matDict):
+
+    d = dict()
+    for m in matDict: 
+        d[m] = [matDict[m].frequencies, matDict[m].absorptions, matDict[m].diffusions]
+
+    return dict2str(d)
+
+# convert back
+def str2matDict(s):
+
+    d = json.loads(s)
+    matDict = dict()
+
+    for m in d: 
+        matDict[m] = EvertMaterial(m)
+        matDict[m].frequencies = d[m][0]
+        matDict[m].absorptions = d[m][1]
+        matDict[m].diffusions = d[m][2]
+        
+    return matDict
+
+# check if a file can be created at filePath
+def isValidExportPath(filePath):
+
+    if( not filePath.lower().endswith('.txt') ):
+        return({'ERROR'}, 'Export file should be a .txt')
+
+    try:
+        open(filePath,'w')
+        return({'PASS'}, '')
+    except IOError:
+        return({'ERROR'}, 'Invalid export file path')
+
+
 def loadMaterialFile(filePath):
 
     fileObj  = open(filePath, 'r')
     matDict = dict()
 
-    # loop over lines (one per material)
+    # loop over lines 
     lines = fileObj.readlines()
     for line in lines:
-        if( line.startswith('/material/name') ):
-            l = line.lstrip().split(' ')
+
+        # shape data 
+        l = line.lstrip().split(' ')
+        header = l[0]
+
+        # detect new material addition
+        if( header.startswith('/material/name') ):
+
+            # shape data
             name = l[1].rstrip()
-            # seemingly stupid, will later be used to store e.g. absorption values
-            matDict[name] = ''
+            
+            # save to locals
+            matDict[name] = EvertMaterial(name)
+        
+        else:
+
+            # shape data
+            values = [float(x) for x in l[1::]]
+
+            # detect frequencies definition
+            if( header.endswith('/frequencies') ):
+                matDict[name].frequencies = values
+
+            # detect frequencies definition
+            elif( header.endswith('/absorption') ):
+                matDict[name].absorptions = values
 
     # return mat list
     return matDict
+
+
+def checkMaterialsIntegrity(matDict):
+
+    # loop over materials
+    for k in matDict:
+
+        m = matDict[k]
+
+        # check that at least one frequency is defined
+        if( len(m.frequencies) == 0 ):
+            return({'ERROR'}, 'Material ' + m.name + ' missing frequencies definition')
+
+        # check that material has same number of absorption and frequencies
+        if( len(m.frequencies) != len(m.absorptions) ):
+            return({'ERROR'}, 'Material ' + m.name + ' number of absorption coefs does not match number of frequencies defined')
+
+    # all passed
+    return({'PASS'}, '')
+
 
 def loadMaterials(context, evertims, forceUpdate = False):
 
@@ -36,11 +114,20 @@ def loadMaterials(context, evertims, forceUpdate = False):
         if addon_prefs.material_file_path:
             filePath = bpy.path.abspath(addon_prefs.material_file_path)
             matDict = loadMaterialFile(filePath)
-            evertims.materials = dict2str(matDict)
+
+            # check material integrity
+            (status, msg) = checkMaterialsIntegrity(matDict)
+            if status != {'PASS'}:
+                return (status, msg)
+
+            # shape output
+            evertims.materials = matDict2str(matDict)
                 
         # return error otherwise
         else:
-            return ({'ERROR'}, 'undefined material file path')
+            return ({'ERROR'}, 'Undefined material file path')
+
+    else: print('evertims.material already defined, skipping init')
 
     # notify success
     return ({'PASS'}, '')
