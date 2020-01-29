@@ -160,7 +160,11 @@ class EvertimsSettings(PropertyGroup):
             description="A string (shaped from dict) of all available materials and their properties",
             default="", maxlen=0, # unlimited length
             ) 
-
+    export_file_path = StringProperty(
+            name="Export scene file path",
+            description="Path to which scene will be exported",
+            default="//evert-export.txt", maxlen=1024, subtype="FILE_PATH",
+            )
 
 class EvertimsPreferences(AddonPreferences):
     bl_idname = __name__

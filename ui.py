@@ -129,11 +129,14 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         # export scene to disk (.txt) as list of osc messages
         rowsub = box.row(align=True)
         rowsub.enabled = not evertims.enable_auralization
-        rowsub.operator("evert.export", text="Export scene to disk", icon="TEXT")
+        rowsub.operator("evertims.export", text="Export scene to disk", icon="TEXT")
+        rowsub = box.row(align=True)
+        rowsub.enabled = not evertims.enable_auralization
+        rowsub.prop(evertims, "export_file_path", text="Export file")
         # crystalize acoustic rays in scene as curves
         rowsub = box.row(align=True)
         rowsub.enabled = evertims.enable_auralization
-        rowsub.operator("evert.run", text="Crystalize visible rays", icon="HAIR").arg = 'crystalize'
+        rowsub.operator("evertims.run", text="Crystalize visible rays", icon="HAIR").arg = 'crystalize'
 
 
 # ############################################################

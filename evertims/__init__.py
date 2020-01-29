@@ -155,10 +155,8 @@ class Evertims(AbstractOscSender):
     # export scene to disk as list of osc messages
     def exportSceneAsOscList(self, config):
 
-        # define file path local (can't make it global because of weird bpy behavior)
-        filePath = bpy.path.abspath("//evert-export.txt")
-
         # create/clear file
+        filePath = bpy.path.abspath(config.export_file_path)
         f = open(filePath,"w+")
         f.write('')
         f.close
@@ -192,14 +190,22 @@ class Evertims(AbstractOscSender):
         if self.rayManager: self.rayManager.crystalizeVisibleRays()
     
 
+class EvertMaterial():
+
+    def __init__(self, name):
+
+        self.name = name
+        self.frequencies = []
+        self.absorptions = []
+        self.diffusions = []    
+
+
 # method replacing the "send" method of all AbstractOscSenders, writing to disk instead
 # of sending OSC message
 def sendToDisk(self, header, content = None):
 
-    # define file path local (can't make it global because of weird bpy behavior)
-    filePath = bpy.path.abspath("//evert-export.txt")
-
     # open file
+    filePath = bpy.path.abspath(bpy.context.scene.evertims.export_file_path)
     f = open(filePath,"a")
 
     # create header

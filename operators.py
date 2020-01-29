@@ -205,6 +205,13 @@ class EvertimsExport(Operator):
             self.report(status, msg)
             return {'CANCELLED'}
 
+        # check export file name
+        filePath = bpy.path.abspath(evertims.export_file_path)
+        (status, msg) = utils.isValidExportPath(filePath)
+        if status != {'PASS'}:
+            self.report(status, msg)
+            return {'CANCELLED'}
+
         # export scene to disk
         _evertims.exportSceneAsOscList(evertims)
 
