@@ -13,7 +13,7 @@ def matDict2str(matDict):
 
     d = dict()
     for m in matDict: 
-        d[m] = [matDict[m].frequencies, matDict[m].absorptions, matDict[m].diffusions]
+        d[m] = [matDict[m].frequencies, matDict[m].absorptions, matDict[m].scatterings]
 
     return dict2str(d)
 
@@ -27,7 +27,7 @@ def str2matDict(s):
         matDict[m] = EvertMaterial(m)
         matDict[m].frequencies = d[m][0]
         matDict[m].absorptions = d[m][1]
-        matDict[m].diffusions = d[m][2]
+        matDict[m].scatterings = d[m][2]
         
     return matDict
 
@@ -75,9 +75,13 @@ def loadMaterialFile(filePath):
             if( header.endswith('/frequencies') ):
                 matDict[name].frequencies = values
 
-            # detect frequencies definition
+            # detect absorption definition
             elif( header.endswith('/absorption') ):
                 matDict[name].absorptions = values
+
+            # detect scattering definition
+            elif( header.endswith('/scattering') ):
+                matDict[name].scatterings = values
 
     # return mat list
     return matDict
@@ -94,9 +98,13 @@ def checkMaterialsIntegrity(matDict):
         if( len(m.frequencies) == 0 ):
             return({'ERROR'}, 'Material ' + m.name + ' missing frequencies definition')
 
-        # check that material has same number of absorption and frequencies
+        # check that material has same number of absorptions and frequencies
         if( len(m.frequencies) != len(m.absorptions) ):
             return({'ERROR'}, 'Material ' + m.name + ' number of absorption coefs does not match number of frequencies defined')
+
+        # check that material has same number of scatterings and frequencies
+        if( len(m.frequencies) != len(m.scatterings) ):
+            return({'ERROR'}, 'Material ' + m.name + ' number of scattering coefs does not match number of frequencies defined')
 
     # all passed
     return({'PASS'}, '')

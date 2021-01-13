@@ -117,6 +117,7 @@ class Evertims(AbstractOscSender):
             self.send('material/name', mat.name)
             self.send('material/' + mat.name + '/frequencies', tuple(mat.frequencies))
             self.send('material/' + mat.name + '/absorption', tuple(mat.absorptions))
+            self.send('material/' + mat.name + '/scattering', tuple(mat.scatterings))
 
         # start client
         self.send('dsp', 1)
@@ -207,7 +208,7 @@ class EvertMaterial():
         self.name = name
         self.frequencies = []
         self.absorptions = []
-        self.diffusions = []    
+        self.scatterings = []    
 
 
 # method replacing the "send" method of all AbstractOscSenders, writing to disk instead
