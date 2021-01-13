@@ -98,7 +98,7 @@ class EvertimsSettings(PropertyGroup):
     ism_max_order = IntProperty(
             name="Max ISM order",
             description="Maximum reflection order considered during the image source simulation",
-            default=3, min=1, max=10
+            default=3, min=0, max=10
             )
     update_thresh_loc = FloatProperty(
             name="Update threshold location (m)",

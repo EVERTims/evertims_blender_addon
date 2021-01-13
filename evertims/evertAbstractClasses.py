@@ -125,7 +125,7 @@ class AbstractMovable(AbstractObj):
         if( not self.hasMoved() ): return 
 
         # shape transform message content
-        world_tranform = self.obj.matrix_world
+        world_tranform = self.obj.matrix_world.normalized() # discard source / listener object scaling
         mat = evertUtils.mat4x4ToTuple(world_tranform)
 
         # send transform message
