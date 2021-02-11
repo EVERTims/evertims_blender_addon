@@ -115,7 +115,6 @@ class Evertims(AbstractOscSender):
         for key in self.materials:
             mat = self.materials[key]
             self.send('material/name', mat.name)
-            self.send('material/' + mat.name + '/frequencies', tuple(mat.frequencies))
             self.send('material/' + mat.name + '/absorption', tuple(mat.absorptions))
             self.send('material/' + mat.name + '/scattering', tuple(mat.scatterings))
 
@@ -206,7 +205,6 @@ class EvertMaterial():
     def __init__(self, name):
 
         self.name = name
-        self.frequencies = []
         self.absorptions = []
         self.scatterings = []    
 

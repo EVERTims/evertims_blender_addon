@@ -13,7 +13,7 @@ def matDict2str(matDict):
 
     d = dict()
     for m in matDict: 
-        d[m] = [matDict[m].frequencies, matDict[m].absorptions, matDict[m].scatterings]
+        d[m] = [matDict[m].absorptions, matDict[m].scatterings]
 
     return dict2str(d)
 
@@ -25,9 +25,8 @@ def str2matDict(s):
 
     for m in d: 
         matDict[m] = EvertMaterial(m)
-        matDict[m].frequencies = d[m][0]
-        matDict[m].absorptions = d[m][1]
-        matDict[m].scatterings = d[m][2]
+        matDict[m].absorptions = d[m][0]
+        matDict[m].scatterings = d[m][1]
         
     return matDict
 
@@ -53,8 +52,8 @@ def loadMaterialFile(filePath):
     lines = fileObj.readlines()
     for line in lines:
 
-        # shape data 
-        l = line.lstrip().split(' ')
+        # shape data (remove leading / trailing spaces and \n\r charact)
+        l = line.lstrip().rstrip().split(' ')
         header = l[0]
 
         # detect new material addition
@@ -71,12 +70,8 @@ def loadMaterialFile(filePath):
             # shape data
             values = [float(x) for x in l[1::]]
 
-            # detect frequencies definition
-            if( header.endswith('/frequencies') ):
-                matDict[name].frequencies = values
-
             # detect absorption definition
-            elif( header.endswith('/absorption') ):
+            if( header.endswith('/absorption') ):
                 matDict[name].absorptions = values
 
             # detect scattering definition
@@ -94,17 +89,9 @@ def checkMaterialsIntegrity(matDict):
 
         m = matDict[k]
 
-        # check that at least one frequency is defined
-        if( len(m.frequencies) == 0 ):
-            return({'ERROR'}, 'Material ' + m.name + ' missing frequencies definition')
-
-        # check that material has same number of absorptions and frequencies
-        if( len(m.frequencies) != len(m.absorptions) ):
-            return({'ERROR'}, 'Material ' + m.name + ' number of absorption coefs does not match number of frequencies defined')
-
-        # check that material has same number of scatterings and frequencies
-        if( len(m.frequencies) != len(m.scatterings) ):
-            return({'ERROR'}, 'Material ' + m.name + ' number of scattering coefs does not match number of frequencies defined')
+        # check that material has same number of absorptions and scattering coefficients
+        if( len(m.absorptions) != len(m.scatterings) ):
+            return({'ERROR'}, 'Material ' + m.name + ' number of absorption coefs does not match number of scatterings coefs')
 
     # all passed
     return({'PASS'}, '')
