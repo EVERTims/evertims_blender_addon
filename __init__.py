@@ -26,6 +26,8 @@ else:
         BoolProperty,
         IntProperty,
         FloatProperty,
+        FloatVectorProperty,
+        IntVectorProperty,
         PointerProperty,
         CollectionProperty
         )
@@ -165,6 +167,37 @@ class EvertimsSettings(PropertyGroup):
             description="Path to which scene will be exported",
             default="//evert-export.txt", maxlen=1024, subtype="FILE_PATH",
             )
+
+    # Source directivity
+    source_directivity_type = EnumProperty(
+            name="Directivity type",
+            description="Method used to define source directivity",
+            items={
+            # ("file", "File", "Loaded SOFA file"),
+            ("disabled", "Disabled", "No directivity"),
+            ("custom", "Custom", "Custom procedural directivity"),
+            },
+            default="disabled")
+    source_directivity_frequencies = IntVectorProperty(
+            name="Directivity frequencies",
+            description="Center frequency bands of source directivity coefficients",
+            size=8,
+            default= (125, 250, 500, 1000, 2000, 4000, 8000, 16000),
+            subtype = "NONE"
+            )
+    source_directivity_values = FloatVectorProperty(
+            name="Directivity values",
+            description="Source directivity coefficients, in 0-100, 0 is omni-directional",
+            size=8,
+            default=(0, 10, 20, 30, 40, 50, 60, 70), 
+            min = 0, 
+            max = 100,
+            soft_min=0, 
+            soft_max=100, 
+            precision = 1,
+            subtype = "NONE"
+            )
+
 
 class EvertimsPreferences(AddonPreferences):
     bl_idname = __name__

@@ -95,6 +95,9 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         col.prop_search(evertims, "listener_object", bpy.data, "objects")
         col = box.column(align=True)
         col.prop_search(evertims, "source_object", bpy.data, "objects")
+        
+        # Source directivity
+        self.drawSourceDirectivity(context)
 
         # Auralization run
         box = layout.box()
@@ -137,6 +140,37 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         rowsub = box.row(align=True)
         rowsub.enabled = evertims.enable_auralization
         rowsub.operator("evertims.run", text="Crystalize visible rays", icon="HAIR").arg = 'crystalize'
+    
+
+    def drawSourceDirectivity(self, context):
+
+        # get locals
+        layout = self.layout
+        scene = context.scene
+        evertims = scene.evertims
+
+        # header
+        box = layout.box()
+        box.enabled = not evertims.enable_auralization
+        box.label("Source directivity", icon='SPEAKER')
+        
+        # add umenu to directivity type enum
+        rowsub = box.row(align=True)
+        rowsub.prop(evertims, "source_directivity_type", expand=False, text="Type")
+
+        # discard if source directivity disabled
+        if evertims.source_directivity_type == "disabled":
+            return
+
+        # display directivity values
+        colsub = box.column(align=True)
+        colsub.prop(evertims, "source_directivity_values", text="Selectivity coefficients")
+
+        # display comment on directivity freq
+        rowsub = box.row(align=True)
+        f1 = str(evertims.source_directivity_frequencies[0])
+        f2 = str(evertims.source_directivity_frequencies[-1])
+        rowsub.label("frequency band centers, x2 from " + str(f1) + "Hz to " + str(f2) + "Hz" )
 
 
 # ############################################################

@@ -90,6 +90,12 @@ class Evertims(AbstractOscSender):
             obj.initOsc(config.ip_remote, config.port_write)
             obj.udpateInterval = config.update_thresh_time
 
+        # init source directivity (not per-sourec management for now)
+        tmp = config.source_directivity_values
+        if config.source_directivity_type == "disabled":
+            tmp = [0 for x in range( len(tmp) )]
+        self.sourceDirectivityValues = tuple(tmp)
+
         # debug
         if self.dbg: print(__name__, 'setup complete')
 
@@ -131,6 +137,8 @@ class Evertims(AbstractOscSender):
         for obj in self.listeners.values(): obj.start()
         for obj in self.rooms.values(): obj.start()
 
+        # define source directivity (@todo: multiple source support)
+        self.send('source/1/selectivity', self.sourceDirectivityValues)
 
     # stop auralization
     def stop(self):
