@@ -174,7 +174,7 @@ class EvertimsSettings(PropertyGroup):
             description="Method used to define source directivity",
             items={
             # ("file", "File", "Loaded SOFA file"),
-            ("disabled", "Disabled", "No directivity"),
+            ("disabled", "Disabled", "Source is omni-directional"),
             ("custom", "Custom", "Custom procedural directivity"),
             },
             default="disabled")

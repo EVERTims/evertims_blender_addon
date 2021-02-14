@@ -162,15 +162,23 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         if evertims.source_directivity_type == "disabled":
             return
 
-        # display directivity values
-        colsub = box.column(align=True)
-        colsub.prop(evertims, "source_directivity_values", text="Selectivity coefficients")
+        # # display directivity values (all vector at once)
+        # colsub = box.column(align=True)
+        # colsub.prop(evertims, "source_directivity_values", text="Selectivity coefficients")
 
-        # display comment on directivity freq
-        rowsub = box.row(align=True)
-        f1 = str(evertims.source_directivity_frequencies[0])
-        f2 = str(evertims.source_directivity_frequencies[-1])
-        rowsub.label("frequency band centers, x2 from " + str(f1) + "Hz to " + str(f2) + "Hz" )
+        # display directivity values (with freq values beside)
+        colsub = box.column(align=True)
+        for iFreq in range(0, len(evertims.source_directivity_frequencies)):
+
+            # get freq string (Hz / kHz)
+            freq = evertims.source_directivity_frequencies[iFreq]
+            if( freq >= 1000 ): freq = str(round(freq/1000)) + "kHz"
+            else: freq = str(freq) + "Hz"
+            
+            # create new row, populate it
+            rowsub = colsub.row(align=True)
+            rowsub.label(freq)
+            rowsub.prop(evertims, 'source_directivity_values', index = iFreq, text="")
 
 
 # ############################################################
