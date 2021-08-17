@@ -180,6 +180,45 @@ class EvertimsImport(Operator):
                     bpy.data.materials.new(name=matName)
                     bpy.data.materials[matName].diffuse_color = (random.random(), random.random(), random.random())
 
+            # # define source directivity (example of how to start on a per-source basis)
+            # if self.arg == 'source':
+                
+            #     # get reference to source
+            #     source = bpy.data.objects[evertims.source_object]
+
+            #     # init rna (see https://blender.stackexchange.com/questions/43785/adding-other-types-of-custom-properties/43786)
+            #     rna_ui = source.get('_RNA_UI')
+            #     if rna_ui is None:
+            #         source['_RNA_UI'] = {}
+            #         rna_ui = source['_RNA_UI']
+
+            #     # init directivity type
+            #     source["directivity_type"] = "disabled"
+            #     rna_ui["directivity_type"] = {
+            #         "description": "File or procedural method to define source directivity",
+            #         "items": {
+            #             # ("file", "File", "Loaded SOFA file"),
+            #             ("disabled", "Disable", "No directivity"),
+            #             ("custom", "Custom", "Custom procedural directivity")
+            #         },
+            #         "default": "custom",
+            #         }
+            #     # source["directivity_type"] = bpy.props.EnumProperty(items=test_items, default="custom")
+
+            #     # define freq
+            #     source["evert_dir_freq"] = (125, 250, 500, 1000, 2000, 4000, 8000, 16000)
+
+            #     # define selectivity
+            #     for iFreq in range(0, len(source["evert_dir_freq"])):
+            #         key = "evert_dir_select_" + str(iFreq)
+            #         source[key] = 0.0
+            #         rna_ui[key] = { "description": "Float",
+            #                         "default": 0.0,
+            #                         "min": 0.0,
+            #                         "max": 100.0,
+            #                         "soft_min": 0.0,
+            #                         "soft_max": 100.0 }
+
         return {'FINISHED'}
 
 
