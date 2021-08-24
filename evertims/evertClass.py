@@ -26,27 +26,22 @@ class EvertRoom(AbstractObj):
         self.id = 1
 
         # throttle (time) udpate mechanism
-        self.udpateInterval = 1 # (in sec)
-        self.nextUpdateTime = 0 # (in sec)
+        self.udpateInterval = 1 # in sec
+        self.nextUpdateTime = 0 # in sec
         self.is_udpated_tmp = False
 
 
     # called upon auralization start
     def start(self):
-        
+
         # parent method
         super().start()
 
         # init locals
         self.is_updated = True
 
-        # keep track of room object materials 
-        self.oldMaterialCollectionList = []
-        for obj in self.objList:
-            self.oldMaterialCollectionList.append( obj.data.materials )
-
         # add callback to stack
-        bpy.app.handlers.scene_update_pre.append(self.check_for_updates_callback)        
+        bpy.app.handlers.depsgraph_update_post.append(self.check_for_updates_callback)
 
 
     # called upon auralization stop
@@ -54,82 +49,67 @@ class EvertRoom(AbstractObj):
 
         # parent method
         super().stop()
-        
+
         # remove callback from stack
-        bpy.app.handlers.scene_update_pre.remove(self.check_for_updates_callback)
+        bpy.app.handlers.depsgraph_update_post.remove(self.check_for_updates_callback)
 
 
     # running callback
     def update(self):
 
-        # loop over objects in room, check for material change
-        for iObj in range( len( self.objList )):
+        # discard if no update required
+        if not self.is_updated:
+            return
 
-            # sanity check (if object was added in group during auralization, 
-            # as self.objList shallow copy will reflect that change)
-            if( iObj >= len(self.oldMaterialCollectionList) ): return 
+        # check if time to update (local throttle on room update)
+        currentTime = time.time()
+        if( currentTime < self.nextUpdateTime ):
+            return
 
-            # locals
-            obj = self.objList[iObj]
-            oldMaterialCollection = self.oldMaterialCollectionList[iObj]
-            
-            # material has been updated 
-            if( obj.data is not None ) and ( oldMaterialCollection != obj.data.materials ):
+        # update running timer
+        self.nextUpdateTime = currentTime + self.udpateInterval
 
-                # flag update required
-                self.is_updated = True
+        # send update
+        self.sendRoom()
 
-                # update locals
-                self.oldMaterialCollectionList[iObj] = obj.data.materials
+        # unflag update required
+        self.is_updated = False
 
-        # note: no need to check for geometry update, handled internally by blender
-        
-        # update required
-        if( self.is_updated ):
+        # debug
+        print('+++ update room')
 
-            # send update
-            self.sendRoom()
-
-            # unflag update required
-            self.is_updated = False
-
-    # local callback called from scene_update_pre stack to get immediate access to room objects
-    # is_updated attribute (could switch False-True-False between two calls of self.update() 
+    # local callback called from depsgraph_update_post stack to get immediate access to room objects
+    # is_updated attribute (could switch False-True-False between two calls of self.update()
     # method otherwise)
-    def check_for_updates_callback(self, scene):
+    def check_for_updates_callback(self, scene, depsgraph):
 
         # no need for further check if update already planned (material changed)
-        if( self.is_updated ): return 
+        if( self.is_updated ):
+            return
 
-        # systematic check on local  bjects udpates (to make sure not to miss it regardless of time throttling)
-        # (blender internally set obj.is_updated for "one frame" of scene_update_pre if object has been updated)
-        self.is_udpated_tmp = self.is_udpated_tmp or any( obj.is_updated for obj in self.objList )
-
-        # check if time to update (time throttling)
-        currentTime = time.time()
-        if( currentTime > self.nextUpdateTime ):
-
-            # transfer update required state, from tmp to main
-            self.is_updated = self.is_udpated_tmp
-
-            # reset tmp
-            self.is_udpated_tmp = False
-
-            # update locals
-            self.nextUpdateTime = currentTime + self.udpateInterval
+        # @todo: optimize
+        for update in depsgraph.updates:
+            for obj in self.objList:
+                # if update.id.original == active_obj and update.is_updated_geometry or update.is_updated_transform:
+                if update.id.original == obj:
+                    self.is_updated = True
 
 
     # send room geometry to client
     def sendRoom(self):
-        
+
         # warn client that room definition is about to start
         self.send("definestart")
 
-        # init loop 
+        # init loop
         faceId = 1
 
         # loop over room objects
         for obj in self.objList:
+
+            # discard if object not a mesh
+            if obj.type != 'MESH':
+                continue
 
             # get list of faces vertices with associated materials
             (facesMatList, facesVertList) = evertUtils.getFacesMatVertList(obj)
@@ -156,7 +136,7 @@ class EvertRoom(AbstractObj):
 class EvertSourceListener(AbstractMovable):
 
     def __init__(self, obj, typeOfInstance):
-        
+
         # parent constructor
         super().__init__()
 
@@ -166,7 +146,7 @@ class EvertSourceListener(AbstractMovable):
         self.id = 1
 
 
-# used by ray manager. solutions are sent by Evertims client to ray drawer. a unique solution 
+# used by ray manager. solutions are sent by Evertims client to ray drawer. a unique solution
 # is created for each combination of source/listener/room in the scene
 class EvertSolution():
 
@@ -208,7 +188,7 @@ class EvertPath():
 class RayManager():
 
     def __init__(self, serverAddress):
-        
+
         # serverAddress is a tuple (ip, port), used to connect read socket
         self.serverAddress = serverAddress
 
@@ -236,8 +216,8 @@ class RayManager():
 
         # add local pre_draw method to to scene callback
         # (have to do it that way, rays won't be drawn if drawRays called in stadard update method)
-        self.draw_handler_handle = bpy.types.SpaceView3D.draw_handler_add(self.drawRays, (None,None), 'WINDOW', 'PRE_VIEW')
-        if self.dbg: print(self.__class__.__name__, 'added evertims module raytracing callback to draw_handler')        
+        self.draw_handler_handle = bpy.types.SpaceView3D.draw_handler_add(self.drawRays, (None,None), 'WINDOW', 'POST_VIEW')
+        if self.dbg: print(self.__class__.__name__, 'added evertims module raytracing callback to draw_handler')
 
 
     # called upon auralization stop
@@ -278,12 +258,12 @@ class RayManager():
             self.unexpectedMsgAddressWarning(addr)
             return
 
-        # split msg address 
+        # split msg address
         addrArray = addr.split('/')
         solutionId = addrArray[2]
         arg1 = addrArray[3]
         arg2 = addrArray[4]
-        
+
         # only handling path msg atm
         if( arg1 != 'path'):
             self.unexpectedMsgAddressWarning(addr)
@@ -300,12 +280,12 @@ class RayManager():
 
         # msg: delete path
         if( arg2 == "deleted" ):
-            
+
             # get list of pathId to delete from solution.paths dict
             pathIds = [pathId for pathId in solution.paths if pathId in data]
             for pathId in pathIds: del solution.paths[pathId]
-     
-            return 
+
+            return
 
         # shape data
         pathId = arg2
@@ -322,7 +302,7 @@ class RayManager():
 
         # msg: path xyz points
         elif( pathAttr == "xyz" ):
-            
+
             # sanity check size
             if( len(data) % 3 != 0 ):
                 print ("wrong format of path point coordinates (not a mult. of 3).", len(data), " float received. path update ignored")
@@ -347,14 +327,20 @@ class RayManager():
             solution.paths[pathId].reflectance = data
 
         # msg: known yet non-processed
-        elif( pathAttr == "image" or pathAttr == "delay" ): return 
-        
+        elif( pathAttr == "image" or pathAttr == "delay" ): return
+
         # unexpected message address warning
         else: self.unexpectedMsgAddressWarning( addr );
 
 
-    # draw rays callback, added to Bender stack of draw methods 
-    def drawRays(self, bpy_dummy_self, bpy_dummy_context):
+    # draw rays callback, added to Bender stack of draw methods
+    def drawRays(self, operator, context):
+
+        # init bgl
+        bgl.glLineWidth(10)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
 
         # loop over solutions
         for solutionId, solution in self.solutions.items():
@@ -362,8 +348,9 @@ class RayManager():
             # loop over paths
             for pathId, path in solution.paths.items():
 
-                # discard draw if path order above limit 
-                if( path.order > self.drawOrderMax ): continue
+                # discard draw if path order above limit
+                if( path.order > self.drawOrderMax ):
+                    continue
 
                 # loop over points (segments)
                 for iPoint in range(len(path.points)-1):
@@ -371,24 +358,31 @@ class RayManager():
                     p1 = path.points[iPoint]
                     p2 = path.points[iPoint+1]
 
-                    bgl.glColor4f(0.8,0.8,0.9,0.01)
-                    bgl.glLineWidth(0.01)
+                    evertUtils.draw_line_3d((0.8, 0.8, 0.9, 0.7), p1, p2)
 
-                    bgl.glBegin(bgl.GL_LINES)
-                    bgl.glVertex3f(p1[0],p1[1],p1[2])
-                    bgl.glVertex3f(p2[0],p2[1],p2[2])
-                    bgl.glEnd()
+                    # bgl.glColor4f(0.8,0.8,0.9,0.01)
+                    # bgl.glLineWidth(0.01)
 
-                    bgl.glNormal3f(0.0,0.0,1.0)
-                    bgl.glShadeModel(bgl.GL_SMOOTH);
+                    # bgl.glBegin(bgl.GL_LINES)
+                    # bgl.glVertex3f(p1[0],p1[1],p1[2])
+                    # bgl.glVertex3f(p2[0],p2[1],p2[2])
+                    # bgl.glEnd()
 
+                    # bgl.glNormal3f(0.0,0.0,1.0)
+                    # bgl.glShadeModel(bgl.GL_SMOOTH);
+
+        # restore opengl defaults
+        bgl.glLineWidth(1)
+        bgl.glDisable(bgl.GL_BLEND)
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
 
     # debug: print unexpected osc msg to console
     def unexpectedMsgAddressWarning(self, addr):
         print("received osc message not handled: " + msg.addr)
 
 
-    # running callback 
+    # running callback
     def update(self):
         self.oscServer.handle_request()
 
@@ -399,8 +393,8 @@ class RayManager():
         # get segment count
         pathsPoints = self.getListOfVisibleSegments()
 
-        # discard if empty 
-        if( len(pathsPoints) == 0 ): return 
+        # discard if empty
+        if( len(pathsPoints) == 0 ): return
 
         # create the Curve Datablock
         curveData = bpy.data.curves.new('EvertRay', type='CURVE')
@@ -428,10 +422,8 @@ class RayManager():
         curveOB = bpy.data.objects.new('EvertRay', curveData)
         curveData.bevel_depth = 0.01
 
-        # attach to scene and validate context
-        scn = bpy.context.scene
-        scn.objects.link(curveOB)
-        scn.objects.active = curveOB
+        # link object to current collection
+        bpy.context.collection.objects.link(curveOB)
 
 
     # count total number of segment if current solutions
@@ -446,7 +438,7 @@ class RayManager():
             # loop over paths
             for pathId, path in solution.paths.items():
 
-                # discard draw if path order above draw limit 
+                # discard draw if path order above draw limit
                 if( path.order > self.drawOrderMax ): continue
 
                 # init list of points

@@ -5,7 +5,7 @@ from . import OSC
 from .. import utils
 
 # ############################################################
-# Main Evertims python module 
+# Main Evertims python module
 # ############################################################
 
 
@@ -23,16 +23,16 @@ class Evertims(AbstractOscSender):
         self.bpy_handle_callback = None
         self.limit_update_room_update_timer = 0
         self.rooms = dict()
-        self.sources = dict()        
+        self.sources = dict()
         self.listeners = dict()
 
         # init OSC client (sender)
         self.oscClient = OSC.OSCClient()
 
 
-    # get current configuration from UI 
+    # get current configuration from UI
     def setup(self, config):
-        
+
         # init locals
         objects = bpy.context.scene.objects
         self.clear()
@@ -60,7 +60,7 @@ class Evertims(AbstractOscSender):
 
         # init scene objects: rooms
         roomGroupName = config.room_group
-        kxObjList = bpy.data.groups[roomGroupName].objects
+        kxObjList = bpy.data.collections[roomGroupName].objects
         self.rooms[roomGroupName] = EvertRoom(kxObjList)
 
         # init scene objects: sources
@@ -153,14 +153,14 @@ class Evertims(AbstractOscSender):
         for obj in self.sources.values(): obj.stop()
         for obj in self.listeners.values(): obj.stop()
         for obj in self.rooms.values(): obj.stop()
-        
+
         # stop ray tracer
         if( self.drawRays ): self.rayManager.stop()
 
 
     # running callback
     def update(self):
-        
+
         # update sources, rooms, and listeners
         for obj in self.sources.values(): obj.update()
         for obj in self.listeners.values(): obj.update()
@@ -186,8 +186,8 @@ class Evertims(AbstractOscSender):
         drawRays = self.drawRays
         self.drawRays = False
 
-        # switch osc send callbacks to write to disk. using "MethodType" truly bounds 
-        # the method to the class, i.e. passing it "self" upon execution 
+        # switch osc send callbacks to write to disk. using "MethodType" truly bounds
+        # the method to the class, i.e. passing it "self" upon execution
         self.send = MethodType(sendToDisk, self)
         for obj in self.rooms.values(): obj.send = MethodType(sendToDisk, obj)
         for obj in self.sources.values(): obj.send = MethodType(sendToDisk, obj)
@@ -202,11 +202,11 @@ class Evertims(AbstractOscSender):
         self.drawRays = drawRays
 
 
-    # Create a curve for all currently visible rays that will remain in the scene after 
+    # Create a curve for all currently visible rays that will remain in the scene after
     # the simulation is over
     def crystalizeVisibleRays(self):
         if self.rayManager: self.rayManager.crystalizeVisibleRays()
-    
+
 
 class EvertMaterial():
 
@@ -214,7 +214,7 @@ class EvertMaterial():
 
         self.name = name
         self.absorptions = []
-        self.scatterings = []    
+        self.scatterings = []
 
 
 # method replacing the "send" method of all AbstractOscSenders, writing to disk instead
@@ -231,24 +231,24 @@ def sendToDisk(self, header, content = None):
     # filter message list (only interested in spat5.evert messages, not those that control
     # the rest of the client behavior)
     discardList = ['dsp', 'destroy']
-    if( any(s in header for s in discardList) ): return 
+    if( any(s in header for s in discardList) ): return
 
     # shape message
     if( content == None ):
         msg = header
 
     else:
-        
+
         # shape content in case of tuple or list
         if( isinstance(content, list) or isinstance(content, tuple) ):
             contentStr = ''
             for i in range(len(content)):
                 contentStr = contentStr + ' ' + str(round(content[i],4)) # avoid outputs like 1e-6
-        
+
         # default shape content
         else:
             contentStr = str(content)
-        
+
         msg = header + ' ' + contentStr
 
     # write to file

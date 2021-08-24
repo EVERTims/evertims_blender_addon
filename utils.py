@@ -6,13 +6,13 @@ def dict2str(d):
     return json.dumps(d)
 
 def str2dict(s):
-    return json.loads(s) 
+    return json.loads(s)
 
 # convert dict of mat to dict of arrays, json dumpable
 def matDict2str(matDict):
 
     d = dict()
-    for m in matDict: 
+    for m in matDict:
         d[m] = [matDict[m].absorptions, matDict[m].scatterings]
 
     return dict2str(d)
@@ -23,11 +23,11 @@ def str2matDict(s):
     d = json.loads(s)
     matDict = dict()
 
-    for m in d: 
+    for m in d:
         matDict[m] = EvertMaterial(m)
         matDict[m].absorptions = d[m][0]
         matDict[m].scatterings = d[m][1]
-        
+
     return matDict
 
 # check if a file can be created at filePath
@@ -48,7 +48,7 @@ def loadMaterialFile(filePath):
     fileObj  = open(filePath, 'r')
     matDict = dict()
 
-    # loop over lines 
+    # loop over lines
     lines = fileObj.readlines()
     for line in lines:
 
@@ -61,10 +61,10 @@ def loadMaterialFile(filePath):
 
             # shape data
             name = l[1].rstrip()
-            
+
             # save to locals
             matDict[name] = EvertMaterial(name)
-        
+
         else:
 
             # shape data
@@ -103,7 +103,7 @@ def loadMaterials(context, evertims, forceUpdate = False):
     if forceUpdate or not evertims.materials:
 
         # get material file path
-        addon_prefs = context.user_preferences.addons[__package__].preferences
+        addon_prefs = context.preferences.addons[__package__].preferences
 
         # load material file if path defined
         if addon_prefs.material_file_path:
@@ -117,7 +117,7 @@ def loadMaterials(context, evertims, forceUpdate = False):
 
             # shape output
             evertims.materials = matDict2str(matDict)
-                
+
         # return error otherwise
         else:
             return ({'ERROR'}, 'Undefined material file path')
@@ -147,7 +147,7 @@ def checkSceneIntegrity(context, evertims):
         return (status, msg)
 
     # sanity check: room group contains at least one object
-    roomObjects = bpy.data.groups[evertims.room_group].objects
+    roomObjects = bpy.data.collections[evertims.room_group].objects
     if( len(roomObjects) == 0 ):
         return({'ERROR'}, 'Room group is empty')
 
@@ -164,7 +164,7 @@ def checkSceneIntegrity(context, evertims):
         # get list of acoustic materials
         matDict = str2dict(evertims.materials)
 
-        # loop over materials in object, check if member of acoustic materials 
+        # loop over materials in object, check if member of acoustic materials
         for mat in materialSlots:
             if not mat.name in matDict:
                 return({'ERROR'}, 'Room object ' + obj.name +' material ' + mat.name + ': not an acoustic material')

@@ -13,14 +13,14 @@ from .evertims import ( Evertims )
 
 # start / stop main auralization
 class EvertimsRun(Operator):
-    
+
     # header
     bl_label = "run auralization"
     bl_idname = 'evertims.run'
     bl_options = {'REGISTER'}
 
     # shape input argument
-    arg = bpy.props.StringProperty()
+    arg: bpy.props.StringProperty(name='arg', default='')
 
     # init locals
     _evertims = Evertims()
@@ -34,7 +34,7 @@ class EvertimsRun(Operator):
         context.window_manager.modal_handler_add(self)
 
         # setup timer to force modal callback execution more often than blender's default
-        EvertimsRun._handle_timer = context.window_manager.event_timer_add(0.075, context.window)
+        EvertimsRun._handle_timer = context.window_manager.event_timer_add(0.075, window=context.window)
 
         # debug
         if context.scene.evertims.debug_logs: print(__name__, 'added evertims callback to draw_handler')
@@ -65,7 +65,7 @@ class EvertimsRun(Operator):
         # init locals
         scene = context.scene
         evertims = scene.evertims
-        addon_prefs = context.user_preferences.addons[__package__].preferences
+        addon_prefs = context.preferences.addons[__package__].preferences
 
         # start auralization
         if self.arg == 'start':
@@ -102,7 +102,7 @@ class EvertimsRun(Operator):
         elif self.arg == 'crystalize':
 
             self._evertims.crystalizeVisibleRays()
-            
+
             return {'FINISHED'}
 
 
@@ -123,7 +123,7 @@ class EvertimsRun(Operator):
 
             # execute evertims internal callback
             self._evertims.update()
-            
+
             # force bgl rays redraw (else only redraw rays on user input event)
             if not context.area is None:
                 context.area.tag_redraw()
@@ -132,15 +132,15 @@ class EvertimsRun(Operator):
 
     # modal cancel method, called (when modal enabled) when blender quit or load new scene
     def cancel(self, context):
-        
+
         # remove local callback
         self.handle_remove(context)
-        
+
         # remove nested callback
         self._evertims.stop()
 
         # force redraw to clean scene of rays
-        if not context.area is None: 
+        if not context.area is None:
             context.area.tag_redraw()
 
 
@@ -148,12 +148,12 @@ class EvertimsRun(Operator):
 class EvertimsImport(Operator):
 
     # header
-    bl_label = "various import operations"
     bl_idname = 'evertims.import'
+    bl_label = "various import operations"
     bl_options = {'REGISTER'}
 
     # shape input arguments
-    arg = bpy.props.StringProperty()
+    arg: bpy.props.StringProperty(name='arg', default='')
 
     # method called from UI
     def execute(self, context):
@@ -178,11 +178,11 @@ class EvertimsImport(Operator):
             for matName in matDict:
                 if( matName not in existingMatNameList ):
                     bpy.data.materials.new(name=matName)
-                    bpy.data.materials[matName].diffuse_color = (random.random(), random.random(), random.random())
+                    bpy.data.materials[matName].diffuse_color = (random.random(), random.random(), random.random(), 1.0)
 
             # # define source directivity (example of how to start on a per-source basis)
             # if self.arg == 'source':
-                
+
             #     # get reference to source
             #     source = bpy.data.objects[evertims.source_object]
 
@@ -224,7 +224,7 @@ class EvertimsImport(Operator):
 
 # export scene to disk
 class EvertimsExport(Operator):
-    
+
     # header
     bl_label = "export scene"
     bl_idname = 'evertims.export'
@@ -262,8 +262,8 @@ class EvertimsExport(Operator):
 
 
 classes = (
-    EvertimsRun, 
-    EvertimsExport, 
+    EvertimsRun,
+    EvertimsExport,
     EvertimsImport
     )
 

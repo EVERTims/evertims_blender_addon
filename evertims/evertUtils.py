@@ -1,14 +1,15 @@
 import bmesh
 import mathutils
 import math
-
+import gpu
+from gpu_extras.batch import batch_for_shader
 
 # ############################################################
 # Evertims mesh and transform utilities
 # ############################################################
 
 
-# method from the Print3D add-on: create a bmesh from an object 
+# method from the Print3D add-on: create a bmesh from an object
 # (for triangulation, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
 
@@ -39,29 +40,29 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
     return bm
 
 
-# given a Blender object, return list of faces vertices and associated materials 
+# given a Blender object, return list of faces vertices and associated materials
 def getFacesMatVertList(obj):
-    
+
     # get bmesh
     bm = bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=True)
-    
+
     # init locals
     facesMatList = []
     facesVertList = []
-    
+
     # loop over mesh faces
     for face in bm.faces:
-        
+
         # get material
         slot = obj.material_slots[face.material_index]
         facesMatList.append(slot.material.name)
-        
+
         # get face vertices
         vertList = []
         for v in face.verts: # browse through vertice index
             vertList = vertList + list(v.co.to_tuple())
         facesVertList.append(vertList)
-        
+
     return (facesMatList, facesVertList)
 
 
@@ -90,10 +91,17 @@ def areDifferent_Mat44(mat1, mat2, thresholdLoc = 1.0, thresholdRot = 1.0):
 
 # convert blender 4x4 matrix to tuple
 def mat4x4ToTuple(mat):
-    
+
     return ( \
         mat[0][0], mat[0][1], mat[0][2], mat[0][3], \
         mat[1][0], mat[1][1], mat[1][2], mat[1][3], \
         mat[2][0], mat[2][1], mat[2][2], mat[2][3], \
         mat[3][0], mat[3][1], mat[3][2], mat[3][3]  \
         )
+
+def draw_line_3d(color, start, end):
+    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    batch = batch_for_shader(shader, 'LINES', {"pos": [start,end]})
+    shader.bind()
+    shader.uniform_float("color", color)
+    batch.draw(shader)
