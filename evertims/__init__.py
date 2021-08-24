@@ -204,8 +204,8 @@ class Evertims(AbstractOscSender):
 
     # Create a curve for all currently visible rays that will remain in the scene after
     # the simulation is over
-    def crystalizeVisibleRays(self):
-        if self.rayManager: self.rayManager.crystalizeVisibleRays()
+    def solidifyVisibleRays(self):
+        if self.rayManager: self.rayManager.solidifyVisibleRays()
 
 
 class EvertMaterial():

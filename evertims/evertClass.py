@@ -388,7 +388,7 @@ class RayManager():
 
 
     # Convert existing rays into curves that will remain in the blender scene after auralization stops
-    def crystalizeVisibleRays(self):
+    def solidifyVisibleRays(self):
 
         # get segment count
         pathsPoints = self.getListOfVisibleSegments()

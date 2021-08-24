@@ -99,9 +99,9 @@ class EvertimsRun(Operator):
             return {'FINISHED'}
 
         # crystalize visible rays
-        elif self.arg == 'crystalize':
+        elif self.arg == 'solidify':
 
-            self._evertims.crystalizeVisibleRays()
+            self._evertims.solidifyVisibleRays()
 
             return {'FINISHED'}
 
