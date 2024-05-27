@@ -19,7 +19,7 @@ class EvertimsUIBase:
         return True
 
 
-class EvertimsToolBar(EvertimsUIBase, Panel):
+class VIEW3D_PT_EvertimsToolBar(EvertimsUIBase, Panel):
 
     bl_label = "Evertims"
 
@@ -193,7 +193,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
 
 
 def register():
-    bpy.utils.register_class(EvertimsToolBar)
+    bpy.utils.register_class(VIEW3D_PT_EvertimsToolBar)
 
 def unregister():
-    bpy.utils.unregister_class(EvertimsToolBar)
+    bpy.utils.unregister_class(VIEW3D_PT_EvertimsToolBar)
