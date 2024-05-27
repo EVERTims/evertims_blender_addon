@@ -1,6 +1,5 @@
 import bpy
 import socket
-import bgl
 from . import ( evertUtils )
 from .evertAbstractClasses import *
 import time
@@ -75,8 +74,6 @@ class EvertRoom(AbstractObj):
         # unflag update required
         self.is_updated = False
 
-        # debug
-        print('+++ update room')
 
     # local callback called from depsgraph_update_post stack to get immediate access to room objects
     # is_updated attribute (could switch False-True-False between two calls of self.update()
@@ -336,12 +333,6 @@ class RayManager():
     # draw rays callback, added to Bender stack of draw methods
     def drawRays(self, operator, context):
 
-        # init bgl
-        bgl.glLineWidth(10)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-
         # loop over solutions
         for solutionId, solution in self.solutions.items():
 
@@ -360,22 +351,6 @@ class RayManager():
 
                     evertUtils.draw_line_3d((0.8, 0.8, 0.9, 0.7), p1, p2)
 
-                    # bgl.glColor4f(0.8,0.8,0.9,0.01)
-                    # bgl.glLineWidth(0.01)
-
-                    # bgl.glBegin(bgl.GL_LINES)
-                    # bgl.glVertex3f(p1[0],p1[1],p1[2])
-                    # bgl.glVertex3f(p2[0],p2[1],p2[2])
-                    # bgl.glEnd()
-
-                    # bgl.glNormal3f(0.0,0.0,1.0)
-                    # bgl.glShadeModel(bgl.GL_SMOOTH);
-
-        # restore opengl defaults
-        bgl.glLineWidth(1)
-        bgl.glDisable(bgl.GL_BLEND)
-        bgl.glDisable(bgl.GL_LINE_SMOOTH)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
 
     # debug: print unexpected osc msg to console
     def unexpectedMsgAddressWarning(self, addr):

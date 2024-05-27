@@ -99,9 +99,10 @@ def mat4x4ToTuple(mat):
         mat[3][0], mat[3][1], mat[3][2], mat[3][3]  \
         )
 
+# draw a line between two points
+# might be more efficient to create shader once, tests on 4.1 don't suggest so. still, c.f. https://docs.blender.org/api/current/gpu.html#module-gpu
 def draw_line_3d(color, start, end):
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = gpu.shader.from_builtin('UNIFORM_COLOR')
     batch = batch_for_shader(shader, 'LINES', {"pos": [start,end]})
-    shader.bind()
     shader.uniform_float("color", color)
     batch.draw(shader)
