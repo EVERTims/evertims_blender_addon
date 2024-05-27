@@ -145,7 +145,7 @@ class EvertimsToolBar(EvertimsUIBase, Panel):
         # crystalize acoustic rays in scene as curves
         rowsub = box.row(align=True)
         rowsub.enabled = evertims.enable_auralization
-        rowsub.operator("evertims.run", text="Solidify Visible Paths", icon="OUTLINER_OB_HAIR").arg = 'solidify'
+        rowsub.operator("evertims.run", text="Solidify Visible Paths", icon="STRANDS").arg = 'solidify'
 
 
     def drawSourceDirectivity(self, context):
