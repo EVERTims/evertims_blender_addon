@@ -1,1 +1,1 @@
-# Evert export add-on of the Evertims project
+# Blender addon for Evertims
